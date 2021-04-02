@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <h1>Hello Shiftex</h1>
+    <h1>Today on emergency duty</h1>
+    <h2>{{ today_duty_list | length }} pharmacies</h2>
 {% endblock %}
 
 {% block content %}
     <section>
-        This is the landing page.
+        {% for shift in today_duty_list %}
+            {{ shift.drugstore.name }}
+            {{ shift.drugstore.street }}
+            {{ shift.drugstore.zipCode }}
+            <br>
+        {% endfor %}
     </section>
 {% endblock %}
