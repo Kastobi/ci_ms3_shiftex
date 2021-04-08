@@ -15,6 +15,7 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def index():
+    today_time = time.strftime("%A, %d %b %Y", time.localtime())
     today_unixtime = int(time.time()) * 1000
     print(today_unixtime)
     today_duty_list = list(mongo.db.emergency_shifts.find(
@@ -22,7 +23,7 @@ def index():
             {"from": {"$lt": today_unixtime}},
             {"to": {"$gt": today_unixtime}}
         ]}))
-    return render_template("index.html", today_duty_list=today_duty_list)
+    return render_template("index.html", today_duty_list=today_duty_list, today_time=today_time)
 
 
 if __name__ == "__main__":

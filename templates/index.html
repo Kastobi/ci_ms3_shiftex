@@ -2,16 +2,44 @@
 
 {% block header %}
     <h1>Today on emergency duty</h1>
-    <h2>{{ today_duty_list | length }} pharmacies</h2>
+    <h2>{{ today_time }}; {{ today_duty_list | length }} pharmacies</h2>
 {% endblock %}
 
 {% block content %}
-    <section>
-        {% for shift in today_duty_list %}
-            {{ shift.drugstore.name }}
-            {{ shift.drugstore.street }}
-            {{ shift.drugstore.zipCode }}
-            <br>
-        {% endfor %}
+    <section class="container">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Street</th>
+                    <th>Zip</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            {% for shift in today_duty_list %}
+                <tr>
+                    {% if shift.drugstore.homepage != "" %}
+                        <td>
+                            <a href="http://{{ shift.drugstore.homepage }}" target="_blank">
+                                {{ shift.drugstore.name }}
+                            </a>
+                        </td>
+                    {% else %}
+                        <td>{{ shift.drugstore.name }}</td>
+                    {% endif %}
+                    <td>{{ shift.drugstore.street }}</td>
+                    <td>{{ shift.drugstore.zipCode }}</td>
+                    <td>{{ shift.drugstore.location }}
+                        {%- if shift.drugstore.subLocation -%}
+                            , {{ shift.drugstore.subLocation }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
     </section>
 {% endblock %}
