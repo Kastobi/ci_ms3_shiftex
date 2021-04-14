@@ -2,13 +2,17 @@ import os
 import time
 import datetime
 
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 from flask_pymongo import PyMongo
+
+from forms import LoginForm
 
 if os.path.exists("env.py"):
     import env
 
 app = Flask(__name__)
+
+app.secret_key = os.environ.get("SECRET_KEY")
 
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
@@ -31,6 +35,12 @@ def index():
             {"to": {"$gt": now_unixtime}}
         ]}))
     return render_template("index.html", today_duty_list=today_duty_list, today_time=today_time)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    return render_template("login.html", form=form)
 
 
 if __name__ == "__main__":
