@@ -5,7 +5,7 @@ import datetime
 from flask import Flask, render_template, url_for
 from flask_pymongo import PyMongo
 
-from forms import LoginForm
+from forms import LoginForm, RegistrationForm
 
 if os.path.exists("env.py"):
     import env
@@ -41,6 +41,12 @@ def index():
 def login():
     form = LoginForm()
     return render_template("login.html", form=form)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegistrationForm()
+    return render_template("register.html", form=form)
 
 
 if __name__ == "__main__":

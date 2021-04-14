@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <h1>Login to manage your shifts</h1>
+    <h1>Sign up to manage your shifts</h1>
 {% endblock %}
 
 {% block content %}
@@ -11,9 +11,17 @@
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend>
-                    Log In
+                    Register
                 </legend>
 
+                <div class="form-group">
+                    {{ form.first_name.label }}
+                    {{ form.first_name }}
+                </div>
+                <div class="form-group">
+                    {{ form.last_name.label }}
+                    {{ form.last_name }}
+                </div>
                 <div class="form-group">
                     {{ form.email.label }}
                     {{ form.email }}
@@ -22,9 +30,13 @@
                     {{ form.password.label }}
                     {{ form.password }}
                 </div>
+                <div class="form-group">
+                    {{ form.password_confirm.label }}
+                    {{ form.password_confirm }}
+                </div>
                 <div class="form-check">
-                    {{ form.remember }}
-                    {{ form.remember.label }}
+                    {{ form.agreed }}
+                    {{ form.agreed.label }}
                 </div>
             </fieldset>
             <div class="form-group">
@@ -33,8 +45,8 @@
         </form>
 
     <div>
-        Need an Account?
-        <a href="{{ url_for("register") }}">Sign Up</a>
+        Already got an Account?
+        <a href="{{ url_for("login") }}">Log In</a>
     </div>
 
     </section>
