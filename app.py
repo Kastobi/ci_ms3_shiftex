@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 
 from flask import Flask, render_template
 from flask_pymongo import PyMongo
@@ -13,15 +14,21 @@ app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 
 
+@app.template_filter()
+def timestamp_to_readable(timestamp):
+    timestamp = timestamp // 1000
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    return dt
+
+
 @app.route("/")
 def index():
     today_time = time.strftime("%A, %d %b %Y", time.localtime())
-    today_unixtime = int(time.time()) * 1000
-    print(today_unixtime)
+    now_unixtime = int(time.time()) * 1000
     today_duty_list = list(mongo.db.emergency_shifts.find(
         {"$and": [
-            {"from": {"$lt": today_unixtime}},
-            {"to": {"$gt": today_unixtime}}
+            {"from": {"$lt": now_unixtime}},
+            {"to": {"$gt": now_unixtime}}
         ]}))
     return render_template("index.html", today_duty_list=today_duty_list, today_time=today_time)
 

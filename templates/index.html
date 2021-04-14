@@ -14,6 +14,8 @@
                     <th>Street</th>
                     <th>Zip</th>
                     <th>City</th>
+                    <th>From</th>
+                    <th>To</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,6 +37,12 @@
                         {%- if shift.drugstore.subLocation -%}
                             , {{ shift.drugstore.subLocation }}
                         {% endif %}
+                    </td>
+                    <td>
+                        {{ shift.from | timestamp_to_readable }}
+                    </td>
+                    <td>
+                        {{ shift.to | timestamp_to_readable }}
                     </td>
                 </tr>
             {% endfor %}
