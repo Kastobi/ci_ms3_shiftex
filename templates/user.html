@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>Your emergency duty shifts</h1>
+    <h2>{{ shifts_list | length }} shifts, {{ total_hours }} hours total</h2>
+{% endblock %}
+
+{% block content %}
+    <section class="container">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Type</th>
+                    <th>Swap</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            {% for shift in shifts_list %}
+                <tr>
+                    <td>
+                        {{ shift.from | timestamp_to_readable }}
+                    </td>
+                    <td>
+                        {{ shift.to | timestamp_to_readable }}
+                    </td>
+                    <td>
+                        {{ shift | duration_to_readable }} hours
+                    </td>
+                    <td>
+                        <button class="btn btn-light" name="{{ shift.planId }}">Toggle Swap</button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}
