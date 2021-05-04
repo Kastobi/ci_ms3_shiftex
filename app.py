@@ -37,7 +37,7 @@ def duration_to_readable(shift):
 def index():
     today_time = time.strftime("%A, %d %b %Y", time.localtime())
     now_unixtime = int(time.time()) * 1000
-    today_duty_list = list(mongo.db.emergency_shifts.find(
+    today_duty_list = list(mongo.db.shifts.find(
         {"$and": [
             {"from": {"$lt": now_unixtime}},
             {"to": {"$gt": now_unixtime}}
@@ -59,8 +59,8 @@ def register():
 
 @app.route("/user")
 def user():
-    user_id = 1152004
-    shifts_list = list(mongo.db.emergency_shifts.find(
+    user_id = 1664005
+    shifts_list = list(mongo.db.shifts.find(
         {"drugstoreId": user_id}
     ))
 
@@ -69,6 +69,16 @@ def user():
         total_hours += duration_to_readable(shift)
 
     return render_template("user.html", shifts_list=shifts_list, total_hours=total_hours)
+
+
+@app.route("/admin")
+def admin():
+    overview = {"count_shifts": int(mongo.db.shifts.count_documents({})),
+                "count_pharmacies": len(mongo.db.shifts.distinct("drugstoreId")),
+                "count_rotation_plans": len(mongo.db.shifts.distinct("planId")),
+                "count_rotations": len(mongo.db.shifts.distinct("digitsId"))
+                }
+    return render_template("admin.html", overview=overview)
 
 
 if __name__ == "__main__":
