@@ -4,6 +4,8 @@ import datetime
 
 from flask import Flask, render_template, url_for
 from flask_pymongo import PyMongo
+from bson import ObjectId
+from flask_restful import Api, Resource
 
 from forms import LoginForm, RegistrationForm
 
@@ -16,6 +18,53 @@ app.secret_key = os.environ.get("SECRET_KEY")
 
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
+
+api = Api(app)
+
+
+class SwapQueriesAPI(Resource):
+    def get(self, input_id):
+        swaps_plan_cursor = list(mongo.db.swaps.find({"planId": int(input_id)}))
+        if len(swaps_plan_cursor) == 0:
+            return {"error": "Not Found"}, 404
+
+        else:
+            swaps_plan = []
+            for document in swaps_plan_cursor:
+                document.pop("_id")
+                swaps_plan.append(document)
+            return swaps_plan, 200
+
+    def put(self, input_id):
+        check_swaps = mongo.db.swaps.find_one({"shiftId": input_id})
+        if check_swaps is not None:
+            return {"error": "Already there"}, 409
+
+        else:
+            find_shift_cursor = mongo.db.shifts.find_one({"_id": ObjectId(input_id)})
+            query_document = {
+                "shiftId": input_id,
+                "drugstoreId": find_shift_cursor["drugstoreId"],
+                "planId": find_shift_cursor["planId"],
+                "digitsId": find_shift_cursor["digitsId"],
+                "offer": [],
+                "reject": [],
+                "accept": []
+            }
+            mongo.db.swaps.insert_one(query_document)
+            return {"success": "Swap query posted"}, 201
+
+    def delete(self, input_id):
+        check_swaps = mongo.db.swaps.find_one({"shiftId": input_id})
+        if check_swaps is None:
+            return {"error": "Not Found"}, 404
+
+        else:
+            mongo.db.swaps.delete_one({"shiftId": input_id})
+            return "", 204
+
+
+api.add_resource(SwapQueriesAPI, "/api/swaps/<input_id>", endpoint="swap_queries")
 
 
 @app.template_filter()
