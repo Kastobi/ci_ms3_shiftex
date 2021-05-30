@@ -2,7 +2,7 @@ import os
 import time
 import datetime
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, request, url_for
 from flask_pymongo import PyMongo
 from bson import ObjectId
 from flask_restful import Api, Resource
@@ -64,7 +64,68 @@ class SwapQueriesAPI(Resource):
             return "", 204
 
 
+class SwapHandlingAPI(Resource):
+    def patch(self, original_shift, mode, offer_id):
+        swap_document = mongo.db.swaps.find_one({"shiftId": original_shift})
+        offer_document = mongo.db.shifts.find_one({"shiftId": offer_id})
+
+        if swap_document is None:
+            return {"error": "Original shift not found"}, 404
+        elif mode not in ["offer", "reject", "accept"]:
+            return {"error": "Mode not supported"}, 400
+        elif offer_document is None:
+            return {"error": "Offered shift not found"}, 404
+
+        elif mode == "offer":
+            if offer_id in swap_document["offer" or "reject" or "accept"]:
+                return {"error": "Offered already"}, 409
+            else:
+                mongo.db.swaps.find_one_and_update(
+                    {"shiftId": original_shift},
+                    {"$addToSet":
+                        {"mode": offer_id}
+                     }
+                )
+                return {"success": "Offer posted"}, 201
+
+        elif mode == "reject":
+            if offer_id in swap_document[mode]:
+                return {"error": "Rejected already"}, 409
+            else:
+                mongo.db.swaps.find_one_and_update(
+                    {"shiftId": original_shift},
+                    {"$addToSet":
+                        {mode: offer_id},
+                     "$pull":
+                        {"offer": offer_id,
+                         "accept": offer_id
+                         }
+                     }
+                )
+                return {"success": "Offer rejected"}, 201
+
+        elif mode == "accept":
+            if offer_id in swap_document[mode]:
+                return {"error": "Accepted already"}, 409
+            else:
+                mongo.db.swaps.find_one_and_update(
+                    {"shiftId": original_shift},
+                    {"$addToSet":
+                        {mode: offer_id},
+                     "$pull":
+                        {"offer": offer_id,
+                         "reject": offer_id
+                         }
+                     }
+                )
+                return {"success": "Offer accepted"}, 201
+
+        else:
+            return {"error": "Bad request"}, 400
+
+
 api.add_resource(SwapQueriesAPI, "/api/swaps/<input_id>", endpoint="swap_queries")
+api.add_resource(SwapHandlingAPI, "/api/swaps/<original_shift>/<mode>/<offer_id>", endpoint="swap_handling")
 
 
 @app.template_filter()
