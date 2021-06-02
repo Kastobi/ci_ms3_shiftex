@@ -30,7 +30,11 @@
                         {{ shift | duration_to_readable }} hours
                     </td>
                     <td>
-                        <button class="btn btn-light" name="{{ shift.planId }}">Toggle Swap</button>
+                        {% if shift._id.__str__() in (swaps_list | shift_id_list)  %}
+                            <button class="btn btn-light swap-toggle swap-open" id="{{ shift._id }}">Revoke Request</button>
+                        {% else %}
+                            <button class="btn btn-light swap-toggle" id="{{ shift._id }}">Open Request</button>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

@@ -143,6 +143,13 @@ def duration_to_readable(shift):
     return duration.total_seconds() // 3600
 
 
+@app.template_filter()
+def shift_id_list(swap_list):
+    output = []
+    for shift in swap_list:
+        output.append(shift["shiftId"])
+    return output
+
 @app.route("/")
 def index():
     today_time = time.strftime("%A, %d %b %Y", time.localtime())
@@ -152,7 +159,9 @@ def index():
             {"from": {"$lt": now_unixtime}},
             {"to": {"$gt": now_unixtime}}
         ]}))
-    return render_template("index.html", today_duty_list=today_duty_list, today_time=today_time)
+    return render_template("index.html",
+                           today_duty_list=today_duty_list,
+                           today_time=today_time)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -169,16 +178,22 @@ def register():
 
 @app.route("/user")
 def user():
-    user_id = 1664005
+    user_id = 3000184
     shifts_list = list(mongo.db.shifts.find(
         {"drugstoreId": user_id}
+    ))
+    swaps_list = list(mongo.db.swaps.find(
+        {"digitsId": shifts_list[0]["digitsId"]}
     ))
 
     total_hours = 0
     for shift in shifts_list:
         total_hours += duration_to_readable(shift)
 
-    return render_template("user.html", shifts_list=shifts_list, total_hours=total_hours)
+    return render_template("user.html",
+                           shifts_list=shifts_list,
+                           swaps_list=swaps_list,
+                           total_hours=total_hours)
 
 
 @app.route("/admin")
