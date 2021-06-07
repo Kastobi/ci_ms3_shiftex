@@ -1,13 +1,18 @@
 import os
 import time
 import datetime
+import uuid
 
-from flask import Flask, render_template, request, url_for
-from flask_pymongo import PyMongo
+from flask import Flask, render_template, request, url_for, redirect, flash
+
 from bson import ObjectId
 from flask_restful import Api, Resource
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required, UserMixin
+from flask_bcrypt import Bcrypt
 
+from db import mongo
 from forms import LoginForm, RegistrationForm
+
 
 if os.path.exists("env.py"):
     import env
@@ -17,12 +22,59 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
 
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
-mongo = PyMongo(app)
+
+mongo.init_app(app)
+
+bcrypt = Bcrypt()
+bcrypt.init_app(app)
 
 api = Api(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+class User(UserMixin):
+    """
+    https://stackoverflow.com/questions/54992412/flask-login-usermixin-class-with-a-mongodb/55003240
+    """
+    def __init__(self, user_json):
+        self.user_json = user_json
+        self.first_name = user_json["first_name"]
+        self.last_name = user_json["last_name"]
+        self.email = user_json["email"]
+        self.drugstoreId = user_json["drugstoreId"]
+        self.passwordHash = user_json["passwordHash"]
+        self.id = user_json["user_id"]
+
+    @staticmethod
+    def register_user(first_name, last_name, email, drugstore_id, password_hash):
+        user_id_random = uuid.uuid4().urn
+        user_id_taken = mongo.db.users.find_one({"user_id": user_id_random})
+        while user_id_taken is not None:
+            user_id_random = uuid.uuid4().urn
+            user_id_taken = mongo.db.users.find_one({"user_id": user_id_random})
+
+        registration = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "drugstoreId": int(drugstore_id),
+            "passwordHash": password_hash,
+            "user_id": user_id_random
+        }
+        mongo.db.users.insert_one(registration)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        u = mongo.db.users.find_one({"user_id": user_id})
+        if not u:
+            return None
+        return User(u)
+
 
 class SwapsQueriesAPI(Resource):
+    @login_required
     def get(self, rotation_id):
         swaps_plan_cursor = list(mongo.db.swaps.find({"planId": int(rotation_id)}))
         if len(swaps_plan_cursor) == 0:
@@ -37,6 +89,7 @@ class SwapsQueriesAPI(Resource):
 
 
 class SwapQueryAPI(Resource):
+    @login_required
     def get(self, shift_id):
         check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
         if check_swap is None:
@@ -46,6 +99,7 @@ class SwapQueryAPI(Resource):
             check_swap.pop("_id")
             return check_swap, 200
 
+    @login_required
     def put(self, shift_id):
         check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
         if check_swap is not None:
@@ -65,6 +119,7 @@ class SwapQueryAPI(Resource):
             mongo.db.swaps.insert_one(query_document)
             return {"success": "Swap query posted"}, 201
 
+    @login_required
     def delete(self, shift_id):
         check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
         if check_swap is None:
@@ -76,6 +131,7 @@ class SwapQueryAPI(Resource):
 
 
 class SwapHandlingAPI(Resource):
+    @login_required
     def patch(self, original_shift, mode, offer_id):
         swap_document = mongo.db.swaps.find_one({"shiftId": original_shift})
         offer_document = mongo.db.shifts.find_one({"_id": ObjectId(offer_id)})
@@ -136,6 +192,7 @@ class SwapHandlingAPI(Resource):
 
 
 class ShiftsQueriesAPI(Resource):
+    @login_required
     def post(self):
         shift_id_dict = eval(request.data.decode("UTF-8"))
         shift_object_id_list = []
@@ -154,12 +211,7 @@ class ShiftsQueriesAPI(Resource):
                 "to": 1
             }}
         ]))
-
-        if len(shifts_list) == 0:
-            return {"error": "Not Found"}, 404
-
-        else:
-            return shifts_list, 200
+        return shifts_list, 200
 
 
 api.add_resource(SwapsQueriesAPI, "/api/swaps/<rotation_id>", endpoint="swaps_queries")
@@ -207,21 +259,57 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("user"))
+
     form = LoginForm()
+
+    if form.validate_on_submit():
+        check_user = mongo.db.users.find_one({"email": form.email.data})
+        if check_user and bcrypt.check_password_hash(check_user["passwordHash"], form.password.data):
+            print(check_user)
+            user = User(check_user)
+            print(user.get_id())
+            login_user(user, remember=form.remember.data)
+            flash("Login successful!")
+            return redirect(url_for("user"))
+
     return render_template("login.html", form=form)
+
+
+@login_required
+@app.route("/logout")
+def logout():
+    logout_user()
+    flash(f"Logout successful!")
+    return redirect(url_for("index"))
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("user"))
+
     form = RegistrationForm()
+
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+        User.register_user(form.first_name.data,
+                           form.last_name.data,
+                           form.email.data,
+                           form.drugstore_id.data,
+                           hashed_password)
+        flash(f"Registration complete for {form.first_name.data} {form.last_name.data}.")
+        return redirect(url_for("login"))
     return render_template("register.html", form=form)
 
 
+@login_required
 @app.route("/user")
 def user():
-    user_id = 3000184
+    drugstore_id = current_user.drugstoreId
     shifts_list = list(mongo.db.shifts.find(
-        {"drugstoreId": user_id}
+        {"drugstoreId": drugstore_id}
     ))
     swaps_list = list(mongo.db.swaps.find(
         {"digitsId": shifts_list[0]["digitsId"]}
@@ -237,6 +325,7 @@ def user():
                            total_hours=total_hours)
 
 
+@login_required
 @app.route("/admin")
 def admin():
     overview = {"count_shifts": int(mongo.db.shifts.count_documents({})),

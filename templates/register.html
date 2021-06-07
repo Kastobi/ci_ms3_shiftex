@@ -15,28 +15,50 @@
                 </legend>
 
                 <div class="form-group">
-                    {{ form.first_name.label }}
-                    {{ form.first_name }}
+                    {{ form.first_name.label(class="form-control-label") }}
+                    {{ form.first_name(class="form-control") }}
                 </div>
                 <div class="form-group">
-                    {{ form.last_name.label }}
-                    {{ form.last_name }}
+                    {{ form.last_name.label(class="form-control-label") }}
+                    {{ form.last_name(class="form-control") }}
                 </div>
                 <div class="form-group">
-                    {{ form.email.label }}
-                    {{ form.email }}
+                    {{ form.email.label(class="form-control-label") }}
+                    {% if form.email.errors %}
+                        {{ form.email(type="email",class="form-control invalid") }}
+                        <div class="error">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(type="email", class="form-control") }}
+                    {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.password.label }}
-                    {{ form.password }}
+                    {{ form.drugstore_id.label(class="form-control-label") }}
+                    {% if form.drugstore_id.errors %}
+                        {{ form.drugstore_id(class="form-control invalid") }}
+                        <div class="error">
+                            {% for error in form.drugstore_id.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.drugstore_id(class="form-control") }}
+                    {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.password_confirm.label }}
-                    {{ form.password_confirm }}
+                    {{ form.password.label(class="form-control-label") }}
+                    {{ form.password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.password_confirm.label(class="form-control-label") }}
+                    {{ form.password_confirm(class="form-control") }}
                 </div>
                 <div class="form-check">
                     {{ form.agreed }}
-                    {{ form.agreed.label }}
+                    {{ form.agreed.label(class="form-control-label") }}
                 </div>
             </fieldset>
             <div class="form-group">

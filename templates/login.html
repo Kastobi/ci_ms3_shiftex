@@ -15,12 +15,12 @@
                 </legend>
 
                 <div class="form-group">
-                    {{ form.email.label }}
-                    {{ form.email }}
+                    {{ form.email.label(class="form-control-label") }}
+                    {{ form.email(type="email", class="form-control") }}
                 </div>
                 <div class="form-group">
-                    {{ form.password.label }}
-                    {{ form.password }}
+                    {{ form.password.label(class="form-control-label") }}
+                    {{ form.password(class="form-control") }}
                 </div>
                 <div class="form-check">
                     {{ form.remember }}
