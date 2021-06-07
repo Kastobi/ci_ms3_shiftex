@@ -22,9 +22,9 @@ mongo = PyMongo(app)
 api = Api(app)
 
 
-class SwapQueriesAPI(Resource):
-    def get(self, input_id):
-        swaps_plan_cursor = list(mongo.db.swaps.find({"planId": int(input_id)}))
+class SwapsQueriesAPI(Resource):
+    def get(self, rotation_id):
+        swaps_plan_cursor = list(mongo.db.swaps.find({"planId": int(rotation_id)}))
         if len(swaps_plan_cursor) == 0:
             return {"error": "Not Found"}, 404
 
@@ -35,15 +35,26 @@ class SwapQueriesAPI(Resource):
                 swaps_plan.append(document)
             return swaps_plan, 200
 
-    def put(self, input_id):
-        check_swaps = mongo.db.swaps.find_one({"shiftId": input_id})
-        if check_swaps is not None:
+
+class SwapQueryAPI(Resource):
+    def get(self, shift_id):
+        check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
+        if check_swap is None:
+            return {"error": "Not Found"}, 404
+
+        else:
+            check_swap.pop("_id")
+            return check_swap, 200
+
+    def put(self, shift_id):
+        check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
+        if check_swap is not None:
             return {"error": "Already there"}, 409
 
         else:
-            find_shift_cursor = mongo.db.shifts.find_one({"_id": ObjectId(input_id)})
+            find_shift_cursor = mongo.db.shifts.find_one({"_id": ObjectId(shift_id)})
             query_document = {
-                "shiftId": input_id,
+                "shiftId": shift_id,
                 "drugstoreId": find_shift_cursor["drugstoreId"],
                 "planId": find_shift_cursor["planId"],
                 "digitsId": find_shift_cursor["digitsId"],
@@ -54,20 +65,20 @@ class SwapQueriesAPI(Resource):
             mongo.db.swaps.insert_one(query_document)
             return {"success": "Swap query posted"}, 201
 
-    def delete(self, input_id):
-        check_swaps = mongo.db.swaps.find_one({"shiftId": input_id})
-        if check_swaps is None:
+    def delete(self, shift_id):
+        check_swap = mongo.db.swaps.find_one({"shiftId": shift_id})
+        if check_swap is None:
             return {"error": "Not Found"}, 404
 
         else:
-            mongo.db.swaps.delete_one({"shiftId": input_id})
+            mongo.db.swaps.delete_one({"shiftId": shift_id})
             return "", 204
 
 
 class SwapHandlingAPI(Resource):
     def patch(self, original_shift, mode, offer_id):
         swap_document = mongo.db.swaps.find_one({"shiftId": original_shift})
-        offer_document = mongo.db.shifts.find_one({"shiftId": offer_id})
+        offer_document = mongo.db.shifts.find_one({"_id": ObjectId(offer_id)})
 
         if swap_document is None:
             return {"error": "Original shift not found"}, 404
@@ -77,13 +88,13 @@ class SwapHandlingAPI(Resource):
             return {"error": "Offered shift not found"}, 404
 
         elif mode == "offer":
-            if offer_id in swap_document["offer" or "reject" or "accept"]:
+            if offer_id in swap_document["offer"] or swap_document["reject"] or swap_document["accept"]:
                 return {"error": "Offered already"}, 409
             else:
                 mongo.db.swaps.find_one_and_update(
                     {"shiftId": original_shift},
                     {"$addToSet":
-                        {"mode": offer_id}
+                        {"offer": offer_id}
                      }
                 )
                 return {"success": "Offer posted"}, 201
@@ -124,8 +135,37 @@ class SwapHandlingAPI(Resource):
             return {"error": "Bad request"}, 400
 
 
-api.add_resource(SwapQueriesAPI, "/api/swaps/<input_id>", endpoint="swap_queries")
-api.add_resource(SwapHandlingAPI, "/api/swaps/<original_shift>/<mode>/<offer_id>", endpoint="swap_handling")
+class ShiftsQueriesAPI(Resource):
+    def post(self):
+        shift_id_dict = eval(request.data.decode("UTF-8"))
+        shift_object_id_list = []
+        for object_id_string in shift_id_dict["ids"]:
+            shift_object_id_list.append(ObjectId(object_id_string))
+
+        shifts_list = list(mongo.db.shifts.aggregate([
+            {"$match": {"_id": {"$in": shift_object_id_list}}},
+            {"$project": {
+                "_id": 0,
+                "shiftId": {
+                    "$toString": "$_id"
+                },
+                "drugstoreId": 1,
+                "from": 1,
+                "to": 1
+            }}
+        ]))
+
+        if len(shifts_list) == 0:
+            return {"error": "Not Found"}, 404
+
+        else:
+            return shifts_list, 200
+
+
+api.add_resource(SwapsQueriesAPI, "/api/swaps/<rotation_id>", endpoint="swaps_queries")
+api.add_resource(SwapQueryAPI, "/api/swap/<shift_id>", endpoint="swap_query")
+api.add_resource(SwapHandlingAPI, "/api/swap/<original_shift>/<mode>/<offer_id>", endpoint="swap_handling")
+api.add_resource(ShiftsQueriesAPI, "/api/shifts/", endpoint="shifts_queries")
 
 
 @app.template_filter()
@@ -149,6 +189,7 @@ def shift_id_list(swap_list):
     for shift in swap_list:
         output.append(shift["shiftId"])
     return output
+
 
 @app.route("/")
 def index():
