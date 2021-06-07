@@ -267,12 +267,12 @@ def login():
     if form.validate_on_submit():
         check_user = mongo.db.users.find_one({"email": form.email.data})
         if check_user and bcrypt.check_password_hash(check_user["passwordHash"], form.password.data):
-            print(check_user)
             user = User(check_user)
-            print(user.get_id())
             login_user(user, remember=form.remember.data)
             flash("Login successful!")
             return redirect(url_for("user"))
+        else:
+            flash("Login failed! Please check email and password.")
 
     return render_template("login.html", form=form)
 
