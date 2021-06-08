@@ -11,6 +11,40 @@
 
 {% block content %}
     <section class="container">
+
+        <h2>Show</h2>
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="radio" id="shifts" name="list" value="shifts" checked>
+                </div>
+            </div>
+            <label class="form-control" for="shifts">My shifts</label>
+
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="radio" id="requests" name="list" value="requests">
+                </div>
+            </div>
+            <label class="form-control" for="requests">Rotation plan swap requests</label>
+
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="radio" id="both" name="list" value="both">
+                </div>
+            </div>
+            <label class="form-control" for="both">Both</label>
+
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="checkbox" id="show-future-only" name="list" value="upcoming" checked>
+                </div>
+            </div>
+            <label class="form-control" for="show-future-only">Upcoming only</label>
+
+        </div>
+
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -22,42 +56,101 @@
             </thead>
             <tbody>
 
-            {% for shift in shifts_list %}
-                <tr class="shift-row">
-                    <td class="shift-from" data-time="{{ shift.from }}">
-                        {{ shift.from | timestamp_to_readable }}
-                    </td>
-                    <td class="shift-to" data-time="{{ shift.to }}">
-                        {{ shift.to | timestamp_to_readable }}
-                    </td>
-                    <td class="shift-duration">
-                        {{ shift | duration_to_readable }} hours
-                    </td>
-                    <td class="shift-swap">
-                        {% if shift._id.__str__() in (swaps_list | shift_id_list)  %}
-                            <button class="btn btn-light swap-handle" data-toggle="modal" data-target="#handle-modal" data-id="{{ shift._id }}">
-                                Handle Offers
-                            </button>
-                            <button class="btn btn-light swap-toggle swap-open" data-id="{{ shift._id }}">
-                                Revoke Request
-                            </button>
+            {% for shift in shifts_list | sort(attribute="from") %}
+
+                {% if shift.from > yesterday_stamp %}
+                    <tr class="shift-row upcoming">
                         {% else %}
-                            <button class="btn btn-light swap-toggle" data-id="{{ shift._id }}">
-                                Open Request
-                            </button>
-                        {% endif %}
-                    </td>
-                </tr>
+                    <tr class="shift-row" style="display: none;">
+                {% endif %}
+
+                        <td class="shift-from" data-time="{{ shift.from }}">
+                            {{ shift.from | timestamp_to_readable }}
+                        </td>
+                        <td class="shift-to" data-time="{{ shift.to }}">
+                            {{ shift.to | timestamp_to_readable }}
+                        </td>
+                        <td class="shift-duration">
+                            {{ shift | duration_to_readable }} hours
+                        </td>
+                        <td class="shift-swap">
+                            {% if shift._id.__str__() in (swaps_list | shift_id_list)  %}
+                                <button class="btn btn-light swap-handle" data-toggle="modal"
+                                        data-target="#handle-modal" data-id="{{ shift._id }}">
+                                    Handle Offers
+                                </button>
+                                <button class="btn btn-light swap-toggle swap-open" data-id="{{ shift._id }}">
+                                    Revoke Request
+                                </button>
+                            {% else %}
+                                <button class="btn btn-light swap-toggle" data-id="{{ shift._id }}">
+                                    Open Request
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
             {% endfor %}
+
+            {% for request in swap_requests_list | sort(attribute="from") %}
+
+                {% if request.from > yesterday_stamp %}
+                    <tr class="request-row upcoming" style="display: none;">
+                {% else %}
+                    <tr class="request-row" style="display: none;">
+                {% endif %}
+
+                        <td class="request-from" data-time="{{ request.from }}">
+                            {{ request.from | timestamp_to_readable }}
+                        </td>
+                        <td class="request-to" data-time="{{ request.to }}">
+                            {{ request.to | timestamp_to_readable }}
+                        </td>
+                        <td class="request-duration">
+                            {{ request | duration_to_readable }} hours
+                        </td>
+                        <td class="request-swap">
+                            <button class="btn btn-light offer-swap" data-toggle="modal"
+                                    data-target="#offer-modal" data-id="{{ request.shiftId }}">
+                                Offer swap
+                            </button>
+                        </td>
+                    </tr>
+            {% endfor %}
+
             </tbody>
         </table>
 
-        <div class="modal fade" id="handle-modal" tabindex="-1" role="dialog" aria-labelledby="handle-modal-label" aria-hidden="true">
+        <div class="modal fade" id="handle-modal" tabindex="-1" role="dialog"
+             aria-labelledby="handle-modal-label" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="handle-modal-label">
-                            New message
+                            Offers for shift on
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="offer-modal" tabindex="-1" role="dialog"
+             aria-labelledby="offer-modal-label" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="offer-modal-label">
+                            Possible swaps for shift on
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>

@@ -307,6 +307,8 @@ def register():
 @login_required
 @app.route("/user")
 def user():
+    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
+    yesterday_stamp = yesterday.timestamp() * 1000
     drugstore_id = current_user.drugstoreId
     shifts_list = list(mongo.db.shifts.find(
         {"drugstoreId": drugstore_id}
@@ -315,6 +317,26 @@ def user():
         {"digitsId": shifts_list[0]["digitsId"]}
     ))
 
+    swap_requests_ids = []
+    for swap_request in swaps_list:
+        swap_requests_ids.append(ObjectId(swap_request["shiftId"]))
+
+    swap_requests_list = list(mongo.db.shifts.aggregate([
+        {"$match": {"$and": [
+            {"_id": {"$in": swap_requests_ids}},
+            {"drugstoreId": {"$ne": drugstore_id}}
+        ]}},
+        {"$project": {
+            "_id": 0,
+            "shiftId": {
+                "$toString": "$_id"
+            },
+            "drugstoreId": 1,
+            "from": 1,
+            "to": 1
+        }}
+    ]))
+
     total_hours = 0
     for shift in shifts_list:
         total_hours += duration_to_readable(shift)
@@ -322,6 +344,8 @@ def user():
     return render_template("user.html",
                            shifts_list=shifts_list,
                            swaps_list=swaps_list,
+                           swap_requests_list=swap_requests_list,
+                           yesterday_stamp=yesterday_stamp,
                            total_hours=total_hours)
 
 

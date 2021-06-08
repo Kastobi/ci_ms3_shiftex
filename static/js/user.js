@@ -5,11 +5,62 @@ $("document").ready( () => {
     }
 
     function ajaxFailure(jqXHR, textStatus, errorThrown) {
-            // todo: flask flash modify for proper HTML display
-            console.log("Error!")
-            console.log(textStatus)
-            console.log(errorThrown)
+        // todo: flask flash modify for proper HTML display
+        console.log("Error!")
+        console.log(textStatus)
+        console.log(errorThrown)
+    }
+
+    function sortList() {
+        // https://stackoverflow.com/questions/22906760/jquery-sort-table-data
+        //todo: maybe move to jinja template?
+        const tbody = $("tbody")
+        tbody.find("tr").sort(function(a, b) {
+            return $("td:first", a).text().localeCompare(($("td:first", b).text()))
+        }).appendTo(tbody)
+    }
+    sortList()
+
+    function listControl() {
+        const shiftRows = $(".shift-row")
+        const requestRows = $(".request-row")
+        const shiftRowsUpcoming = $(".shift-row.upcoming")
+        const requestRowsUpcoming = $(".request-row.upcoming")
+
+        const bothToggle = $("#both")[0].checked
+        const shiftsToggle = $("#shifts")[0].checked
+        const requestToggle = $("#requests")[0].checked
+        const upcomingToggle = $("#show-future-only")[0].checked
+
+        if (bothToggle && !upcomingToggle) {
+            shiftRows.show()
+            requestRows.show()
+        } else if (bothToggle && upcomingToggle) {
+            shiftRows.hide()
+            requestRows.hide()
+            shiftRowsUpcoming.show()
+            requestRowsUpcoming.show()
+        } else if (shiftsToggle && !upcomingToggle) {
+            shiftRows.show()
+            requestRows.hide()
+        } else if (shiftsToggle && upcomingToggle) {
+            shiftRows.hide()
+            requestRows.hide()
+            shiftRowsUpcoming.show()
+        } else if (requestToggle && !upcomingToggle) {
+            shiftRows.hide()
+            requestRows.show()
+        } else if (requestToggle && upcomingToggle) {
+            shiftRows.hide()
+            requestRows.hide()
+            requestRowsUpcoming.show()
         }
+    }
+
+    $(`input[name="list"]`).click(function () {
+        listControl()
+    })
+
 
     /**
      * Button for toggling shift requests by the user
@@ -175,6 +226,92 @@ $("document").ready( () => {
                     handleOffer(this)
                 })
             }
+        }
+    })
+
+    /**
+     * Modal for offering shifts on a swap request
+     * shiftId acquired from button data-id attribute
+     */
+
+    $("#offer-modal").on("show.bs.modal", function (event) {
+        const modal = $(this)
+        const button = $(event.relatedTarget)
+        const requestRow = button.closest(".request-row")
+        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString()
+        const shiftId = button.data("id")
+
+        const userShiftList = {"ids": []}
+        $(".upcoming .swap-toggle").each(function() {
+            userShiftList["ids"].push(this.dataset.id)
+        })
+
+        const requestShifts = $.ajax({
+                url: `${$SCRIPT_ROOT}/api/shifts/`,
+                method: "post",
+                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify(userShiftList),
+                success: function (data, textStatus, jqXHR) {
+                    offerShiftsSuccess(data)
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                }
+            })
+
+        function offerShiftsSuccess(data) {
+            modal.find(".modal-title").text("Possible swaps for shift on " + dateDay)
+            modal.find(".modal-body").html(`
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Duration</th>
+                            <th>Offer shift</th>
+                        </tr>
+                    </thead>
+                    <tbody class="modal-tbody">
+                    </tbody>
+                </table>`)
+
+            for (let shift of data) {
+                $(".modal-tbody").append(`
+                    <tr>
+                        <td>${localeString(shift.from)}</td>
+                        <td>${localeString(shift.to)}</td>
+                        <td>${Math.abs(shift.to - shift.from) / 3.6e6} hours</td>
+                        <td>
+                            <button class="btn btn-light offer-accept offer-shift" data-id="${shift.shiftId}">
+                                    Offer shift
+                            </button>
+                        </td>
+                    </tr>`)
+            }
+
+            function offerShift(element) {
+                const offerId = element.dataset.id
+
+                const placeOffer = $.ajax({
+                    url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/offer/${offerId}`,
+                    method: "patch",
+                    success: function (data, textStatus, jqXHR) {
+                        offerPlacementSuccess()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        ajaxFailure(jqXHR, textStatus, errorThrown)
+                    }
+                })
+
+                function offerPlacementSuccess() {
+                    element.classList.add("offered")
+                }
+
+            }
+
+            $(".offer-shift").click(function () {
+                    offerShift(this)
+                })
         }
     })
 
