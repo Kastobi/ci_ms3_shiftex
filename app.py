@@ -138,7 +138,7 @@ class SwapHandlingAPI(Resource):
 
         if swap_document is None:
             return {"error": "Original shift not found"}, 404
-        elif mode not in ["offer", "reject", "accept"]:
+        elif mode not in ["offer", "reject", "accept", "confirm"]:
             return {"error": "Mode not supported"}, 400
         elif offer_document is None:
             return {"error": "Offered shift not found"}, 404
@@ -186,6 +186,10 @@ class SwapHandlingAPI(Resource):
                      }
                 )
                 return {"success": "Offer accepted"}, 201
+
+        elif mode == "confirm":
+
+            return {"success": "Swap confirmed"}, 201
 
         else:
             return {"error": "Bad request"}, 400
@@ -241,6 +245,13 @@ def shift_id_list(swap_list):
     for shift in swap_list:
         output.append(shift["shiftId"])
     return output
+
+
+@app.template_filter()
+def accept_id_from_list(shift_id, accept_list):
+    # https://stackoverflow.com/questions/8653516/python-list-of-dictionaries-search
+    list_index = next((i for i, item in enumerate(accept_list) if item["shiftId"] == shift_id), None)
+    return accept_list[list_index]["accept"]
 
 
 @app.route("/")
@@ -310,20 +321,24 @@ def user():
     yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
     yesterday_stamp = yesterday.timestamp() * 1000
     drugstore_id = current_user.drugstoreId
-    shifts_list = list(mongo.db.shifts.find(
+    users_shifts_list = list(mongo.db.shifts.find(
         {"drugstoreId": drugstore_id}
     ))
-    swaps_list = list(mongo.db.swaps.find(
-        {"digitsId": shifts_list[0]["digitsId"]}
+    rotation_swaps_list = list(mongo.db.swaps.find(
+        {"digitsId": users_shifts_list[0]["digitsId"]}
     ))
 
-    swap_requests_ids = []
-    for swap_request in swaps_list:
-        swap_requests_ids.append(ObjectId(swap_request["shiftId"]))
+    rotation_swap_requests_ids = []
+    for rotation_swap_request in rotation_swaps_list:
+        rotation_swap_requests_ids.append(ObjectId(rotation_swap_request["shiftId"]))
 
-    swap_requests_list = list(mongo.db.shifts.aggregate([
+    users_shifts_ids = []
+    for users_shift in users_shifts_list:
+        users_shifts_ids.append(users_shift["_id"].__str__())
+
+    rotation_swap_requests_list = list(mongo.db.shifts.aggregate([
         {"$match": {"$and": [
-            {"_id": {"$in": swap_requests_ids}},
+            {"_id": {"$in": rotation_swap_requests_ids}},
             {"drugstoreId": {"$ne": drugstore_id}}
         ]}},
         {"$project": {
@@ -337,14 +352,32 @@ def user():
         }}
     ]))
 
+    users_accepted_offers = list(mongo.db.swaps.aggregate([
+        {"$match": {
+            "accept": {"$in": users_shifts_ids}}},
+        {"$project": {
+            "_id": 0,
+            "shiftId": 1,
+            "accept": 1
+        }},
+        {"$unwind": "$accept"},
+        {"$match": {
+            "accept": {"$in": users_shifts_ids}}}
+        ]))
+
+    if len(users_accepted_offers) > 0:
+        flash("Some of your offers were accepted! Please confirm the swap.")
+
     total_hours = 0
-    for shift in shifts_list:
+    for shift in users_shifts_list:
         total_hours += duration_to_readable(shift)
 
     return render_template("user.html",
-                           shifts_list=shifts_list,
-                           swaps_list=swaps_list,
-                           swap_requests_list=swap_requests_list,
+                           current_user=current_user,
+                           users_shifts_list=users_shifts_list,
+                           rotation_swaps_list=rotation_swaps_list,
+                           rotation_swap_requests_list=rotation_swap_requests_list,
+                           users_accepted_offers=users_accepted_offers,
                            yesterday_stamp=yesterday_stamp,
                            total_hours=total_hours)
 

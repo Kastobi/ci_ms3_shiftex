@@ -315,6 +315,90 @@ $("document").ready( () => {
         }
     })
 
+    $("#confirm-modal").on("show.bs.modal", function (event) {
+        const modal = $(this)
+        const button = $(event.relatedTarget)
+        const requestRow = button.closest(".request-row")
+        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString()
+        const shiftId = button.data("id")
+        const confirmId = button.data("confirm")
+
+        modal.find(".modal-body").html(`
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Transaction</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="confirm-modal-tbody">
+                    </tbody>
+                </table>`)
+
+        const shiftList = {"ids": [shiftId, confirmId]}
+        const requestShifts = $.ajax({
+                url: `${$SCRIPT_ROOT}/api/shifts/`,
+                method: "post",
+                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify(shiftList),
+                success: function (data, textStatus, jqXHR) {
+                    requestShiftsSuccess(data)
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                }
+            })
+
+        function requestShiftsSuccess(data) {
+            const confirmButton = $(".confirm-offer")
+            $(".confirm-modal-tbody").append(`
+                    <tr>
+                        <td>You get</td>
+                        <td>${localeString(data[0].from)}</td>
+                        <td>${localeString(data[0].to)}</td>
+                        <td>${Math.abs(data[0].to - data[0].from) / 3.6e6} hours</td>
+                    </tr>
+                    <tr>
+                        <td>You trade in</td>
+                        <td>${localeString(data[1].from)}</td>
+                        <td>${localeString(data[1].to)}</td>
+                        <td>${Math.abs(data[1].to - data[1].from) / 3.6e6} hours</td>
+                    </tr>`)
+
+            confirmButton.attr("data-id", shiftId).attr("data-target", confirmId)
+
+            function confirmOffer(element) {
+                const shiftId = element.dataset.id
+                const confirmId = element.dataset.target
+
+                const sendRequest = $.ajax({
+                    url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/confirm/${confirmId}`,
+                    method: "patch",
+                    success: function (data, textStatus, jqXHR) {
+                        confirmSuccess()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        ajaxFailure(jqXHR, textStatus, errorThrown)
+                    }
+                })
+
+                function confirmSuccess() {
+                    // todo: dismiss modal
+                    // todo: reload user.html
+                    console.log("Confirmed!")
+                }
+            }
+
+            confirmButton.click(function () {
+                    confirmOffer(this)
+                })
+
+        }
+
+    })
+
     $(".modal").on("shown.bs.modal", function () {
         $(".modal").trigger("focus")
     })

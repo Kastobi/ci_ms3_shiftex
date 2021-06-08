@@ -6,7 +6,8 @@
 
 {% block header %}
     <h1>Your emergency duty shifts</h1>
-    <h2>{{ shifts_list | length }} shifts, {{ total_hours }} hours total</h2>
+    <h2>{{ users_shifts_list | length }} shifts, {{ total_hours }} hours total</h2>
+    <h2>{{ current_user.email }}</h2>
 {% endblock %}
 
 {% block content %}
@@ -56,7 +57,7 @@
             </thead>
             <tbody>
 
-            {% for shift in shifts_list | sort(attribute="from") %}
+            {% for shift in users_shifts_list | sort(attribute="from") %}
 
                 {% if shift.from > yesterday_stamp %}
                     <tr class="shift-row upcoming">
@@ -74,7 +75,7 @@
                             {{ shift | duration_to_readable }} hours
                         </td>
                         <td class="shift-swap">
-                            {% if shift._id.__str__() in (swaps_list | shift_id_list)  %}
+                            {% if shift._id.__str__() in (rotation_swaps_list | shift_id_list)  %}
                                 <button class="btn btn-light swap-handle" data-toggle="modal"
                                         data-target="#handle-modal" data-id="{{ shift._id }}">
                                     Handle Offers
@@ -91,7 +92,7 @@
                     </tr>
             {% endfor %}
 
-            {% for request in swap_requests_list | sort(attribute="from") %}
+            {% for request in rotation_swap_requests_list | sort(attribute="from") %}
 
                 {% if request.from > yesterday_stamp %}
                     <tr class="request-row upcoming" style="display: none;">
@@ -109,10 +110,18 @@
                             {{ request | duration_to_readable }} hours
                         </td>
                         <td class="request-swap">
-                            <button class="btn btn-light offer-swap" data-toggle="modal"
-                                    data-target="#offer-modal" data-id="{{ request.shiftId }}">
-                                Offer swap
-                            </button>
+                            {% if request.shiftId in (users_accepted_offers | shift_id_list) %}
+                                <button class="btn btn-light confirm-swap" data-toggle="modal"
+                                        data-target="#confirm-modal" data-id="{{ request.shiftId }}"
+                                        data-confirm="{{ request.shiftId | accept_id_from_list(users_accepted_offers) }}">
+                                    Confirm
+                                </button>
+                            {%  else %}
+                                <button class="btn btn-light offer-swap" data-toggle="modal"
+                                        data-target="#offer-modal" data-id="{{ request.shiftId }}">
+                                    Offer swap
+                                </button>
+                            {% endif %}
                         </td>
                     </tr>
             {% endfor %}
@@ -160,6 +169,34 @@
 
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog"
+             aria-labelledby="confirm-modal-label" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirm-modal-label">
+                            Confirm the accepted offer
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    </div>
+                    <div class="modal-footer confirm-modal-footer">
+                        <button class="btn btn-block btn-light confirm-offer"
+                                data-id="" data-target="">
+                                    Confirm swap
+                        </button>
                         <button type="button" class="btn btn-light" data-dismiss="modal">
                             Close
                         </button>
