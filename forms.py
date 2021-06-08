@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Regexp
 
 from db import mongo
 
@@ -16,7 +16,8 @@ drugstoreList = [
 
 class LoginForm(FlaskForm):
     email = StringField("Email",
-                        validators=[DataRequired(), Email()])
+                        validators=[DataRequired(),
+                                    Email()])
     password = PasswordField("Password",
                              validators=[DataRequired()])
     remember = BooleanField("Remember Me")
@@ -29,14 +30,20 @@ class RegistrationForm(FlaskForm):
     last_name = StringField("Last Name",
                             validators=[DataRequired()])
     email = StringField("Email",
-                        validators=[DataRequired(), Email()])
+                        validators=[DataRequired(),
+                                    Email()])
     drugstore_id = SelectField("Drugstore",
-                              choices=drugstoreList,
-                              validators=[DataRequired()])
+                               choices=drugstoreList,
+                               validators=[DataRequired()])
     password = PasswordField("Password",
-                             validators=[DataRequired()])
+                             validators=[DataRequired(),
+                                         Length(min=6),
+                                         Regexp("^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$",
+                                                message="""Minimum six characters, at least one letter, 
+                                                one number and one special character.""")])
     password_confirm = PasswordField("Confirm Password",
-                                     validators=[EqualTo("password"), DataRequired()])
+                                     validators=[EqualTo("password"),
+                                                 DataRequired()])
     agreed = BooleanField("Agree to Terms & Conditions and Privacy Policy",
                           validators=[DataRequired()])
     submit = SubmitField("Sign Up")
@@ -49,7 +56,6 @@ class RegistrationForm(FlaskForm):
 
     @staticmethod
     def validate_drugstore_id(self, drugstore_id):
-        print(drugstore_id.data)
         check_drugstore_id = mongo.db.users.find_one({"drugstoreId": int(drugstore_id.data)})
         if check_drugstore_id is not None:
             raise ValidationError("Drugstore is already taken! Please choose a different one or contact admin.")

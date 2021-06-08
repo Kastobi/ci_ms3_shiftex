@@ -19,7 +19,9 @@
     <script defer>
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
-    <script defer src={{ url_for("static", filename="js/script.js") }}></script>
+
+    {% block script %}
+    {% endblock %}
 
 </head>
 <body>

@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block script %}
+    <script defer src={{ url_for("static", filename="js/register.js") }}></script>
+{% endblock %}
+
 {% block header %}
     <h1>Sign up to manage your shifts</h1>
 {% endblock %}
@@ -25,7 +29,7 @@
                 <div class="form-group">
                     {{ form.email.label(class="form-control-label") }}
                     {% if form.email.errors %}
-                        {{ form.email(type="email",class="form-control invalid") }}
+                        {{ form.email(type="email",class="form-control is-invalid") }}
                         <div class="error">
                             {% for error in form.email.errors %}
                                 <span>{{ error }}</span>
@@ -38,7 +42,7 @@
                 <div class="form-group">
                     {{ form.drugstore_id.label(class="form-control-label") }}
                     {% if form.drugstore_id.errors %}
-                        {{ form.drugstore_id(class="form-control invalid") }}
+                        {{ form.drugstore_id(class="form-control is-invalid") }}
                         <div class="error">
                             {% for error in form.drugstore_id.errors %}
                                 <span>{{ error }}</span>
@@ -50,7 +54,16 @@
                 </div>
                 <div class="form-group">
                     {{ form.password.label(class="form-control-label") }}
-                    {{ form.password(class="form-control") }}
+                    {% if form.password.errors %}
+                        {{ form.password(class="form-control is-invalid") }}
+                        <div class="error">
+                            {% for error in form.password.errors %}
+                                <span class="password-hint">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.password(class="form-control") }}
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     {{ form.password_confirm.label(class="form-control-label") }}

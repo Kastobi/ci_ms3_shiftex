@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block script %}
+    <script defer src={{ url_for("static", filename="js/user.js") }}></script>
+{% endblock %}
+
 {% block header %}
     <h1>Your emergency duty shifts</h1>
     <h2>{{ shifts_list | length }} shifts, {{ total_hours }} hours total</h2>

@@ -176,13 +176,6 @@ $("document").ready( () => {
                 })
             }
         }
-
-        function handleFailure(jqXHR, textStatus, errorThrown) {
-            // todo: flask flash modify for proper HTML display
-            console.log("Error!")
-            console.log(textStatus)
-            console.log(errorThrown)
-        }
     })
 
     $(".modal").on("shown.bs.modal", function () {
