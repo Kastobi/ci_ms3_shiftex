@@ -1,76 +1,15 @@
-import os
 import time
 import datetime
-import uuid
 
-from flask import Flask, render_template, request, url_for, redirect, flash
-
+from flask import render_template, request, url_for, redirect, flash
 from bson import ObjectId
-from flask_restful import Api, Resource
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required, UserMixin
-from flask_bcrypt import Bcrypt
+from flask_restful import Resource
+from flask_login import current_user, login_user, logout_user, login_required
 
-from db import mongo
-from forms import LoginForm, RegistrationForm
-
-
-if os.path.exists("env.py"):
-    import env
-
-app = Flask(__name__)
-
-app.secret_key = os.environ.get("SECRET_KEY")
-
-app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
-
-mongo.init_app(app)
-
-bcrypt = Bcrypt()
-bcrypt.init_app(app)
-
-api = Api(app)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-
-class User(UserMixin):
-    """
-    https://stackoverflow.com/questions/54992412/flask-login-usermixin-class-with-a-mongodb/55003240
-    """
-    def __init__(self, user_json):
-        self.user_json = user_json
-        self.first_name = user_json["first_name"]
-        self.last_name = user_json["last_name"]
-        self.email = user_json["email"]
-        self.drugstoreId = user_json["drugstoreId"]
-        self.passwordHash = user_json["passwordHash"]
-        self.id = user_json["user_id"]
-
-    @staticmethod
-    def register_user(first_name, last_name, email, drugstore_id, password_hash):
-        user_id_random = uuid.uuid4().urn
-        user_id_taken = mongo.db.users.find_one({"user_id": user_id_random})
-        while user_id_taken is not None:
-            user_id_random = uuid.uuid4().urn
-            user_id_taken = mongo.db.users.find_one({"user_id": user_id_random})
-
-        registration = {
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-            "drugstoreId": int(drugstore_id),
-            "passwordHash": password_hash,
-            "user_id": user_id_random
-        }
-        mongo.db.users.insert_one(registration)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        u = mongo.db.users.find_one({"user_id": user_id})
-        if not u:
-            return None
-        return User(u)
+from shiftex import app, api, bcrypt
+from shiftex.db import mongo
+from shiftex.models import User
+from shiftex.forms import LoginForm, RegistrationForm
 
 
 class SwapsQueriesAPI(Resource):
@@ -414,9 +353,3 @@ def admin():
                 "count_rotations": len(mongo.db.shifts.distinct("digitsId"))
                 }
     return render_template("admin.html", overview=overview)
-
-
-if __name__ == "__main__":
-    app.run(
-        debug=True)
-# todo: debug mode !

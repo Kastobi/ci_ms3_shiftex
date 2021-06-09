@@ -66,7 +66,7 @@ $("document").ready( () => {
      * Button for toggling shift requests by the user
      *
      * css class highlights status of shift("swap-open" = There is an open swap request already present),
-     * ajax http method based on presence of this class ("DELETE" to revoke, "PUT" to open request),
+     * ajax http method based on presence of this class ("DELETE" to revoke, "PUT" to request swap),
      * ajax url based on data-id html attribute of button,
      *
      * @param element button of shift table; attribute "data-id" maps to shift, css-class "swap-open" flags status
@@ -77,7 +77,7 @@ $("document").ready( () => {
         function toggleSuccess() {
             if (element.classList.contains("swap-open")) {
                 element.classList.remove("swap-open")
-                element.innerText = "Open Request"
+                element.innerText = "Request Swap"
                 $(`button[data-id="${element.dataset.id}"].swap-handle`).remove()
             } else {
                 element.classList.add("swap-open")

@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Regexp
 
-from db import mongo
+from shiftex.db import mongo
 
 # todo: implement dynamic way after testing, some from one rotation plan for dev / testing
 drugstoreList = [
