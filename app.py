@@ -132,23 +132,26 @@ class SwapQueryAPI(Resource):
 
 class SwapHandlingAPI(Resource):
     @login_required
-    def patch(self, original_shift, mode, offer_id):
-        swap_document = mongo.db.swaps.find_one({"shiftId": original_shift})
-        offer_document = mongo.db.shifts.find_one({"_id": ObjectId(offer_id)})
+    def patch(self, request_id, mode, offer_id):
+        original_swap_document = mongo.db.swaps.find_one({"shiftId": request_id})
+        original_shift_document = mongo.db.shifts.find_one({"_id": ObjectId(request_id)})
+        offer_shift_document = mongo.db.shifts.find_one({"_id": ObjectId(offer_id)})
 
-        if swap_document is None:
+        if original_swap_document is None:
             return {"error": "Original shift not found"}, 404
         elif mode not in ["offer", "reject", "accept", "confirm"]:
             return {"error": "Mode not supported"}, 400
-        elif offer_document is None:
+        elif offer_shift_document is None:
             return {"error": "Offered shift not found"}, 404
 
         elif mode == "offer":
-            if offer_id in swap_document["offer"] or swap_document["reject"] or swap_document["accept"]:
+            if offer_id in original_swap_document["offer"] or \
+                            original_swap_document["reject"] or \
+                            original_swap_document["accept"]:
                 return {"error": "Offered already"}, 409
             else:
                 mongo.db.swaps.find_one_and_update(
-                    {"shiftId": original_shift},
+                    {"shiftId": request_id},
                     {"$addToSet":
                         {"offer": offer_id}
                      }
@@ -156,11 +159,11 @@ class SwapHandlingAPI(Resource):
                 return {"success": "Offer posted"}, 201
 
         elif mode == "reject":
-            if offer_id in swap_document[mode]:
+            if offer_id in original_swap_document[mode]:
                 return {"error": "Rejected already"}, 409
             else:
                 mongo.db.swaps.find_one_and_update(
-                    {"shiftId": original_shift},
+                    {"shiftId": request_id},
                     {"$addToSet":
                         {mode: offer_id},
                      "$pull":
@@ -172,11 +175,11 @@ class SwapHandlingAPI(Resource):
                 return {"success": "Offer rejected"}, 201
 
         elif mode == "accept":
-            if offer_id in swap_document[mode]:
+            if offer_id in original_swap_document[mode]:
                 return {"error": "Accepted already"}, 409
             else:
                 mongo.db.swaps.find_one_and_update(
-                    {"shiftId": original_shift},
+                    {"shiftId": request_id},
                     {"$addToSet":
                         {mode: offer_id},
                      "$pull":
@@ -188,7 +191,27 @@ class SwapHandlingAPI(Resource):
                 return {"success": "Offer accepted"}, 201
 
         elif mode == "confirm":
+            original_shift_document["drugstore"], offer_shift_document["drugstore"] =\
+                offer_shift_document["drugstore"], original_shift_document["drugstore"]
 
+            original_shift_document["drugstoreId"], offer_shift_document["drugstoreId"] =\
+                offer_shift_document["drugstoreId"], original_shift_document["drugstoreId"]
+
+            original_shift_document.pop("_id")
+            offer_shift_document.pop("_id")
+
+            object_id_list = [ObjectId(request_id), ObjectId(offer_id)]
+            id_list = [request_id, offer_id]
+
+            mongo.db.shifts.delete_many({"_id": {"$in": object_id_list}})
+            mongo.db.shifts.insert_many([original_shift_document, offer_shift_document])
+
+            mongo.db.swaps.delete_many({"shiftId": {"$in": id_list}})
+            mongo.db.swaps.update_many({}, {"$pull": {
+                                                "offer": {"$in": id_list},
+                                                "reject": {"$in": id_list},
+                                                "accept": {"$in": id_list}
+            }})
             return {"success": "Swap confirmed"}, 201
 
         else:
@@ -220,7 +243,7 @@ class ShiftsQueriesAPI(Resource):
 
 api.add_resource(SwapsQueriesAPI, "/api/swaps/<rotation_id>", endpoint="swaps_queries")
 api.add_resource(SwapQueryAPI, "/api/swap/<shift_id>", endpoint="swap_query")
-api.add_resource(SwapHandlingAPI, "/api/swap/<original_shift>/<mode>/<offer_id>", endpoint="swap_handling")
+api.add_resource(SwapHandlingAPI, "/api/swap/<request_id>/<mode>/<offer_id>", endpoint="swap_handling")
 api.add_resource(ShiftsQueriesAPI, "/api/shifts/", endpoint="shifts_queries")
 
 
