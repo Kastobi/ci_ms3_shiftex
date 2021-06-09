@@ -6,4 +6,4 @@ if __name__ == "__main__":
     app.run(
         debug=True)
 
-# todo: debug mode !
+# todo: debug mode ! switch to gunicorn for submission!
