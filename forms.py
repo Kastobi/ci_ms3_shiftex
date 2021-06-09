@@ -48,13 +48,11 @@ class RegistrationForm(FlaskForm):
                           validators=[DataRequired()])
     submit = SubmitField("Sign Up")
 
-    @staticmethod
     def validate_email(self, email):
         check_email = mongo.db.users.find_one({"email": email.data})
         if check_email is not None:
             raise ValidationError("Email is already taken! Please choose a different one or contact admin.")
 
-    @staticmethod
     def validate_drugstore_id(self, drugstore_id):
         check_drugstore_id = mongo.db.users.find_one({"drugstoreId": int(drugstore_id.data)})
         if check_drugstore_id is not None:
