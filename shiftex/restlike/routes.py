@@ -1,15 +1,10 @@
-import time
-import datetime
-
-from flask import render_template, request, url_for, redirect, flash
 from bson import ObjectId
+from flask import request
+from flask_login import login_required
 from flask_restful import Resource
-from flask_login import current_user, login_user, logout_user, login_required
 
-from shiftex import app, api, bcrypt
-from shiftex.db import mongo
-from shiftex.models import User
-from shiftex.forms import LoginForm, RegistrationForm
+from shiftex.main import mongo
+from shiftex.restlike import api
 
 
 class SwapsQueriesAPI(Resource):
@@ -25,6 +20,9 @@ class SwapsQueriesAPI(Resource):
                 document.pop("_id")
                 swaps_plan.append(document)
             return swaps_plan, 200
+
+
+api.add_resource(SwapsQueriesAPI, "/api/swaps/<rotation_id>", endpoint="swaps_queries")
 
 
 class SwapQueryAPI(Resource):
@@ -67,6 +65,9 @@ class SwapQueryAPI(Resource):
         else:
             mongo.db.swaps.delete_one({"shiftId": shift_id})
             return "", 204
+
+
+api.add_resource(SwapQueryAPI, "/api/swap/<shift_id>", endpoint="swap_query")
 
 
 class SwapHandlingAPI(Resource):
@@ -157,6 +158,9 @@ class SwapHandlingAPI(Resource):
             return {"error": "Bad request"}, 400
 
 
+api.add_resource(SwapHandlingAPI, "/api/swap/<request_id>/<mode>/<offer_id>", endpoint="swap_handling")
+
+
 class ShiftsQueriesAPI(Resource):
     @login_required
     def post(self):
@@ -180,176 +184,4 @@ class ShiftsQueriesAPI(Resource):
         return shifts_list, 200
 
 
-api.add_resource(SwapsQueriesAPI, "/api/swaps/<rotation_id>", endpoint="swaps_queries")
-api.add_resource(SwapQueryAPI, "/api/swap/<shift_id>", endpoint="swap_query")
-api.add_resource(SwapHandlingAPI, "/api/swap/<request_id>/<mode>/<offer_id>", endpoint="swap_handling")
 api.add_resource(ShiftsQueriesAPI, "/api/shifts/", endpoint="shifts_queries")
-
-
-@app.template_filter()
-def timestamp_to_readable(timestamp):
-    timestamp = timestamp // 1000
-    dt = datetime.datetime.fromtimestamp(timestamp)
-    return dt
-
-
-@app.template_filter()
-def duration_to_readable(shift):
-    shift_start = timestamp_to_readable(shift["from"])
-    shift_end = timestamp_to_readable(shift["to"])
-    duration = shift_end - shift_start
-    return duration.total_seconds() // 3600
-
-
-@app.template_filter()
-def shift_id_list(swap_list):
-    output = []
-    for shift in swap_list:
-        output.append(shift["shiftId"])
-    return output
-
-
-@app.template_filter()
-def accept_id_from_list(shift_id, accept_list):
-    # https://stackoverflow.com/questions/8653516/python-list-of-dictionaries-search
-    list_index = next((i for i, item in enumerate(accept_list) if item["shiftId"] == shift_id), None)
-    return accept_list[list_index]["accept"]
-
-
-@app.route("/")
-def index():
-    today_time = time.strftime("%A, %d %b %Y", time.localtime())
-    now_unixtime = int(time.time()) * 1000
-    today_duty_list = list(mongo.db.shifts.find(
-        {"$and": [
-            {"from": {"$lt": now_unixtime}},
-            {"to": {"$gt": now_unixtime}}
-        ]}))
-    return render_template("index.html",
-                           today_duty_list=today_duty_list,
-                           today_time=today_time)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("user"))
-
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        check_user = mongo.db.users.find_one({"email": form.email.data})
-        if check_user and bcrypt.check_password_hash(check_user["passwordHash"], form.password.data):
-            user = User(check_user)
-            login_user(user, remember=form.remember.data)
-            flash("Login successful!")
-            return redirect(url_for("user"))
-        else:
-            flash("Login failed! Please check email and password.")
-
-    return render_template("login.html", form=form)
-
-
-@login_required
-@app.route("/logout")
-def logout():
-    logout_user()
-    flash(f"Logout successful!")
-    return redirect(url_for("index"))
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("user"))
-
-    form = RegistrationForm()
-
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
-        User.register_user(form.first_name.data,
-                           form.last_name.data,
-                           form.email.data,
-                           form.drugstore_id.data,
-                           hashed_password)
-        flash(f"Registration complete for {form.first_name.data} {form.last_name.data}.")
-        return redirect(url_for("login"))
-    return render_template("register.html", form=form)
-
-
-@login_required
-@app.route("/user")
-def user():
-    yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
-    yesterday_stamp = yesterday.timestamp() * 1000
-    drugstore_id = current_user.drugstoreId
-    users_shifts_list = list(mongo.db.shifts.find(
-        {"drugstoreId": drugstore_id}
-    ))
-    rotation_swaps_list = list(mongo.db.swaps.find(
-        {"digitsId": users_shifts_list[0]["digitsId"]}
-    ))
-
-    rotation_swap_requests_ids = []
-    for rotation_swap_request in rotation_swaps_list:
-        rotation_swap_requests_ids.append(ObjectId(rotation_swap_request["shiftId"]))
-
-    users_shifts_ids = []
-    for users_shift in users_shifts_list:
-        users_shifts_ids.append(users_shift["_id"].__str__())
-
-    rotation_swap_requests_list = list(mongo.db.shifts.aggregate([
-        {"$match": {"$and": [
-            {"_id": {"$in": rotation_swap_requests_ids}},
-            {"drugstoreId": {"$ne": drugstore_id}}
-        ]}},
-        {"$project": {
-            "_id": 0,
-            "shiftId": {
-                "$toString": "$_id"
-            },
-            "drugstoreId": 1,
-            "from": 1,
-            "to": 1
-        }}
-    ]))
-
-    users_accepted_offers = list(mongo.db.swaps.aggregate([
-        {"$match": {
-            "accept": {"$in": users_shifts_ids}}},
-        {"$project": {
-            "_id": 0,
-            "shiftId": 1,
-            "accept": 1
-        }},
-        {"$unwind": "$accept"},
-        {"$match": {
-            "accept": {"$in": users_shifts_ids}}}
-        ]))
-
-    if len(users_accepted_offers) > 0:
-        flash("Some of your offers were accepted! Please confirm the swap.")
-
-    total_hours = 0
-    for shift in users_shifts_list:
-        total_hours += duration_to_readable(shift)
-
-    return render_template("user.html",
-                           current_user=current_user,
-                           users_shifts_list=users_shifts_list,
-                           rotation_swaps_list=rotation_swaps_list,
-                           rotation_swap_requests_list=rotation_swap_requests_list,
-                           users_accepted_offers=users_accepted_offers,
-                           yesterday_stamp=yesterday_stamp,
-                           total_hours=total_hours)
-
-
-@login_required
-@app.route("/admin")
-def admin():
-    overview = {"count_shifts": int(mongo.db.shifts.count_documents({})),
-                "count_pharmacies": len(mongo.db.shifts.distinct("drugstoreId")),
-                "count_rotation_plans": len(mongo.db.shifts.distinct("planId")),
-                "count_rotations": len(mongo.db.shifts.distinct("digitsId"))
-                }
-    return render_template("admin.html", overview=overview)

@@ -1,14 +1,9 @@
-import os
+from shiftex import create_app
 
-from shiftex import app
-
-if os.path.exists("env.py"):
-    import env
+app = create_app()
 
 if __name__ == "__main__":
     app.run(
-        host=os.environ.get("IP"),
-        port=int(os.environ.get("PORT")),
         debug=True)
 
 # todo: debug mode !

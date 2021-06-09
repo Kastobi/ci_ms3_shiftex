@@ -2,8 +2,8 @@ import uuid
 
 from flask_login import UserMixin
 
-from shiftex import login_manager
-from shiftex.db import mongo
+from shiftex.main import mongo
+from shiftex.users import login_manager
 
 
 class User(UserMixin):

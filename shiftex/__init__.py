@@ -1,33 +1,25 @@
-import os
-
 from flask import Flask
 
-from flask_restful import Api
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
-
-from shiftex.db import mongo
-
-if os.path.exists("env.py"):
-    import env
-
-app = Flask(__name__)
-
-app.secret_key = os.environ.get("SECRET_KEY")
-
-app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
+from shiftex.config import Config
+from shiftex.main import mongo
+from shiftex.restlike import api
+from shiftex.users import bcrypt, login_manager
 
 
-mongo.init_app(app)
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-bcrypt = Bcrypt()
-bcrypt.init_app(app)
+    api.init_app(app)
+    bcrypt.init_app(app)
+    mongo.init_app(app)
+    login_manager.init_app(app)
 
-api = Api(app)
+    from shiftex.main import main
+    from shiftex.restlike import restlike
+    from shiftex.users import users
+    app.register_blueprint(main)
+    app.register_blueprint(restlike)
+    app.register_blueprint(users)
 
-login_manager = LoginManager()
-login_manager.login_view = "login"
-login_manager.init_app(app)
-
-
-from shiftex import routes
+    return app
