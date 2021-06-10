@@ -9,4 +9,6 @@ app = create_app()
 
 # todo: debug mode ! switch to gunicorn for submission!
 if __name__ == "__main__":
-    app.run()
+    app.run(
+        host=os.getenv("IP"),
+        port=os.getenv("PORT"))
