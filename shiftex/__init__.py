@@ -6,16 +6,15 @@ from flask import Flask
 if os.path.exists("env.py"):
     import env
 
-#from shiftex.config import Config
+from shiftex.config import Config
 from shiftex.main import mongo
 from shiftex.restlike import api
 from shiftex.users import bcrypt, login_manager
 
 
-#config_class=Config
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    #app.config.from_object(config_class)
+    app.config.from_object(config_class)
 
     api.init_app(app)
     bcrypt.init_app(app)
