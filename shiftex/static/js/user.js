@@ -12,8 +12,13 @@ $("document").ready( () => {
     }
 
     function sortList() {
-        // https://stackoverflow.com/questions/22906760/jquery-sort-table-data
-        //todo: maybe move to jinja template?
+        /**
+         * Sorts swap requests into shifts list for comfort comprehension
+         *
+         * https://stackoverflow.com/questions/22906760/jquery-sort-table-data
+         * todo: maybe move to jinja template?
+         * @type {*|Window.jQuery|HTMLElement}
+         */
         const tbody = $("tbody")
         tbody.find("tr").sort(function(a, b) {
             return $("td:first", a).text().localeCompare(($("td:first", b).text()))
@@ -22,6 +27,13 @@ $("document").ready( () => {
     sortList()
 
     function listControl() {
+        /**
+         * Adds controls to the shifts table
+         *  toggle: show all or just upcoming (upcoming default)
+         *  select: show shifts, swap requests or both (default: shifts)
+         *
+         * @type {*|Window.jQuery|HTMLElement}
+         */
         const shiftRows = $(".shift-row")
         const requestRows = $(".request-row")
         const shiftRowsUpcoming = $(".shift-row.upcoming")
@@ -62,17 +74,30 @@ $("document").ready( () => {
     })
 
 
-    /**
-     * Button for toggling shift requests by the user
-     *
-     * css class highlights status of shift("swap-open" = There is an open swap request already present),
-     * ajax http method based on presence of this class ("DELETE" to revoke, "PUT" to request swap),
-     * ajax url based on data-id html attribute of button,
-     *
-     * @param element button of shift table; attribute "data-id" maps to shift, css-class "swap-open" flags status
-     */
     function toggleSwap(element) {
+        /**
+         * Button for toggling shift requests by the user
+         *
+         * css class highlights status of shift("swap-open" = There is an open swap request already present),
+         * ajax http method based on presence of this class ("DELETE" to revoke, "PUT" to request swap),
+         * ajax url based on data-id html attribute of button,
+         *
+         * @param element button of shift table;
+         *      attribute "data-id" maps to shift,
+         *      css-class "swap-open" flags status
+         */
         const httpMethod = element.classList.contains("swap-open") ? "DELETE" : "PUT"
+
+        const toggleSwap = $.ajax({
+            url: `${$SCRIPT_ROOT}/api/swap/${element.dataset.id}`,
+            method: httpMethod,
+            success: function (data, textStatus, jqXHR) {
+                toggleSuccess()
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                ajaxFailure(jqXHR, textStatus, errorThrown)
+            }
+        })
 
         function toggleSuccess() {
             if (element.classList.contains("swap-open")) {
@@ -87,17 +112,6 @@ $("document").ready( () => {
                     .insertBefore(`button[data-id="${element.dataset.id}"].swap-open`)
             }
         }
-
-        const request = $.ajax({
-            url: `${$SCRIPT_ROOT}/api/swap/${element.dataset.id}`,
-            method: httpMethod,
-            success: function (data, textStatus, jqXHR) {
-                toggleSuccess()
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                ajaxFailure(jqXHR, textStatus, errorThrown)
-            }
-        })
     }
 
     $(".swap-toggle").click(function () {
@@ -106,7 +120,7 @@ $("document").ready( () => {
     })
 
     /**
-     * Modal for handling of offers on a shift request
+     * Dynamic generated Modal for handling offers on a shift request
      * shiftId acquired from button data-id attribute
      * first ajax call to get swap with offers
      * second ajax call to get data on the offers
@@ -119,20 +133,22 @@ $("document").ready( () => {
         const dateDay = new Date(parseInt(shiftRow.children(".shift-from")[0].dataset.time)).toDateString()
         const shiftId = button.data("id")
 
-        const requestSwap = $.ajax({
-                url: `${$SCRIPT_ROOT}/api/swap/${shiftId}`,
-                method: "GET",
-                dataType: "json",
-                success: function(data, textStatus, jqXHR) {
-                    handleSuccess(data, textStatus, jqXHR)
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    ajaxFailure(jqXHR, textStatus, errorThrown)
-                }
+        const getSwapDocument = $.ajax({
+            /**
+             * First call, gets the swap document
+             */
+            url: `${$SCRIPT_ROOT}/api/swap/${shiftId}`,
+            method: "GET",
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                generateHandleModal(data, textStatus, jqXHR)
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                ajaxFailure(jqXHR, textStatus, errorThrown)
             }
-        )
+        })
 
-        function handleSuccess(data, textStatus, jqXHR) {
+        function generateHandleModal(data, textStatus, jqXHR) {
             modal.find(".modal-title").text("Offers for shift on " + dateDay)
             modal.find(".modal-body").html(`
                 <table class="table table-striped">
@@ -148,25 +164,36 @@ $("document").ready( () => {
                     </tbody>
                 </table>`)
 
+            /**
+             * Build a list of shiftIds to query for, from shiftIds in swap document
+             */
             const offerList = data.offer
             const acceptList = data.accept
             const rejectList = data.reject
             const requestShiftsList = {"ids": data.offer.concat(data.accept).concat(data.reject)}
 
             const requestShifts = $.ajax({
+                /**
+                 * Query for information on offered shifts
+                 */
                 url: `${$SCRIPT_ROOT}/api/shifts/`,
-                method: "post",
+                method: "POST",
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(requestShiftsList),
                 success: function (data, textStatus, jqXHR) {
-                    modalShiftsSuccess(data)
+                    populateHandleModalTable(data)
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     ajaxFailure(jqXHR, textStatus, errorThrown)
                 }
             })
 
-            function modalShiftsSuccess(data) {
+            function populateHandleModalTable(data) {
+                /**
+                 * Populate table with offered shifts information
+                 *
+                 * @param array of objects from requestShifts ajax call
+                 */
                 for (let offer of data) {
                     $(".modal-tbody").append(`
                     <tr>
@@ -192,15 +219,27 @@ $("document").ready( () => {
                     $(`button.offer-reject[data-id=${shift}]`).addClass("rejected")
                 }
 
+
                 function handleOffer(element) {
+                    /**
+                     * Add Functionality to accept or reject an offered shift
+                     *
+                     @param element button of handle modal offered shifts table;
+                     *      attribute "data-id" maps to shift,
+                     *      css-class "accepted", "rejected" flags status
+                     */
                     const mode = element.classList.contains("offer-accept") ? "accept" : "reject"
 
                     if (element.classList.contains(`${mode}ed`)) {
+                        // todo: disable button, flag
                         return
                     }
 
                     const offerId = element.dataset.id
-                    const request = $.ajax({
+                    const acceptRejectOffer = $.ajax({
+                        /**
+                         * Accept / Reject the offered shift
+                         */
                         url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/${mode}/${offerId}`,
                         method: "PATCH",
                         success: function (data, textStatus, jqXHR) {
@@ -247,19 +286,22 @@ $("document").ready( () => {
         })
 
         const requestShifts = $.ajax({
+            /**
+             * Request information on shifts of user, to select shifts to offer
+             */
                 url: `${$SCRIPT_ROOT}/api/shifts/`,
                 method: "post",
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(userShiftList),
                 success: function (data, textStatus, jqXHR) {
-                    offerShiftsSuccess(data)
+                    populateOfferShiftsTable(data)
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     ajaxFailure(jqXHR, textStatus, errorThrown)
                 }
             })
 
-        function offerShiftsSuccess(data) {
+        function populateOfferShiftsTable(data) {
             modal.find(".modal-title").text("Possible swaps for shift on " + dateDay)
             modal.find(".modal-body").html(`
                 <table class="table table-striped">
@@ -306,7 +348,6 @@ $("document").ready( () => {
                 function offerPlacementSuccess() {
                     element.classList.add("offered")
                 }
-
             }
 
             $(".offer-shift").click(function () {
@@ -314,6 +355,10 @@ $("document").ready( () => {
                 })
         }
     })
+
+    /**
+     * Modal to confirm an accepted offer and therefore execute the request
+     */
 
     $("#confirm-modal").on("show.bs.modal", function (event) {
         const modal = $(this)
@@ -339,19 +384,23 @@ $("document").ready( () => {
 
         const shiftList = {"ids": [shiftId, confirmId]}
         const requestShifts = $.ajax({
+                /**
+                 * Request information on requested shift and accepted shift, to confirm
+                 * offer
+                 */
                 url: `${$SCRIPT_ROOT}/api/shifts/`,
                 method: "post",
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(shiftList),
                 success: function (data, textStatus, jqXHR) {
-                    requestShiftsSuccess(data)
+                    generateConfirmTable(data)
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     ajaxFailure(jqXHR, textStatus, errorThrown)
                 }
             })
 
-        function requestShiftsSuccess(data) {
+        function generateConfirmTable(data) {
             const confirmButton = $(".confirm-offer")
             $(".confirm-modal-tbody").append(`
                     <tr>
@@ -373,7 +422,10 @@ $("document").ready( () => {
                 const shiftId = element.dataset.id
                 const confirmId = element.dataset.target
 
-                const sendRequest = $.ajax({
+                const sendConfirmation = $.ajax({
+                    /**
+                     * confirm and therefore execute the offer
+                     */
                     url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/confirm/${confirmId}`,
                     method: "patch",
                     success: function (data, textStatus, jqXHR) {
@@ -393,10 +445,8 @@ $("document").ready( () => {
 
             confirmButton.click(function () {
                     confirmOffer(this)
-                })
-
+            })
         }
-
     })
 
     $(".modal").on("shown.bs.modal", function () {

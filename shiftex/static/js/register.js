@@ -1,7 +1,13 @@
+/*jshint esversion: 8 */
+/*globals console, $*/
+
 $("document").ready( () => {
 
     const passwordField = $("#password")
 
+    /**
+     * Password validator before submit to give a hint on security prerequisites
+     */
     function passwordValidation() {
         const checkRegex = new RegExp("^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$")
 
