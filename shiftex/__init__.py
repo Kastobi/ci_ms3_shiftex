@@ -1,16 +1,21 @@
 import ssl
+import os
 
 from flask import Flask
 
-from shiftex.config import Config
+if os.path.exists("env.py"):
+    import env
+
+#from shiftex.config import Config
 from shiftex.main import mongo
 from shiftex.restlike import api
 from shiftex.users import bcrypt, login_manager
 
 
-def create_app(config_class=Config):
+#config_class=Config
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    #app.config.from_object(config_class)
 
     api.init_app(app)
     bcrypt.init_app(app)
