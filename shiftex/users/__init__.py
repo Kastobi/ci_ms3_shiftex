@@ -1,3 +1,12 @@
+"""
+shiftex users package
+===================
+
+Containing user registration, login, logout, login_manager functionality
+and the user dependent main functionality on route user.html
+
+"""
+
 from flask import Blueprint
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager

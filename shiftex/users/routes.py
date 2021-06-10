@@ -1,3 +1,23 @@
+"""
+shiftex users package - routes module
+=====================================
+
+Provides the views for user management and
+logged in users.
+
+routes:
+    /login
+        -> GET -> login.html
+        -> POST -> validates login form, logs user in
+    /logout
+        -> logs user out, redirect to index
+    /register
+        -> GET -> register.html
+        -> POST -> validates register form, registers user
+    /user
+
+"""
+
 import datetime
 
 from bson import ObjectId
@@ -13,13 +33,16 @@ from shiftex.users.models import User
 
 @users.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Login user if email and password hash match an existing user in users collection
+    """
     if current_user.is_authenticated:
         return redirect(url_for("users.user"))
 
     form = LoginForm()
 
     if form.validate_on_submit():
-        check_user = mongo.db.users.find_one({"email": form.email.data})
+        check_user = mongo.db.users.find_one({"email": form.email.data.lower()})
         if check_user and bcrypt.check_password_hash(check_user["passwordHash"], form.password.data):
             user = User(check_user)
             login_user(user, remember=form.remember.data)
@@ -34,6 +57,7 @@ def login():
 @login_required
 @users.route("/logout")
 def logout():
+    "Log user out"
     logout_user()
     flash(f"Logout successful!")
     return redirect(url_for("main.index"))
@@ -41,6 +65,9 @@ def logout():
 
 @users.route("/register", methods=["GET", "POST"])
 def register():
+    """
+    register user on validated register form
+    """
     if current_user.is_authenticated:
         return redirect(url_for("users.user"))
 
@@ -50,7 +77,7 @@ def register():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
         User.register_user(form.first_name.data,
                            form.last_name.data,
-                           form.email.data,
+                           form.email.data.lower(),
                            form.drugstore_id.data,
                            hashed_password)
         flash(f"Registration complete for {form.first_name.data} {form.last_name.data}.")
@@ -61,6 +88,24 @@ def register():
 @login_required
 @users.route("/user")
 def user():
+    """
+    Provide main functionality for logged in user.
+    Uses the user document to identify relevant drugstore and rotation.
+    The user.html is rendered once by the server and afterwards updated with jQuery
+
+    Therefore:
+        a) provide for the user relevant shifts (relevant = limit same time yesterday, 24h shifts!)
+            -> filtering template (yesterday_stamp)
+        b) provide all user-shifts in the current plan
+            -> via drugstore identifier in shifts collection (users_shifts_list)
+        c) provide all swap requests in the users rotation
+            -> via rotation identifier in swaps collection (rotation_swaps_list)
+        d) provide all swap requests posted by the user
+            -> via shift ids in swaps and shifts lists
+        e) checks if there are accepted offers to confirm (and therefore execute swap)
+            -> users shifts ids vs ids in accept array in swap documents
+
+    """
     yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
     yesterday_stamp = yesterday.timestamp() * 1000
     drugstore_id = current_user.drugstoreId
@@ -116,18 +161,21 @@ def user():
         total_hours += duration_to_readable(shift)
 
     return render_template("user.html",
+                           yesterday_stamp=yesterday_stamp,
                            current_user=current_user,
                            users_shifts_list=users_shifts_list,
                            rotation_swaps_list=rotation_swaps_list,
                            rotation_swap_requests_list=rotation_swap_requests_list,
                            users_accepted_offers=users_accepted_offers,
-                           yesterday_stamp=yesterday_stamp,
                            total_hours=total_hours)
 
 
 @login_required
 @users.route("/admin")
 def admin():
+    """
+    Starting point to provide a management interface for productive use.
+    """
     overview = {"count_shifts": int(mongo.db.shifts.count_documents({})),
                 "count_pharmacies": len(mongo.db.shifts.distinct("drugstoreId")),
                 "count_rotation_plans": len(mongo.db.shifts.distinct("planId")),

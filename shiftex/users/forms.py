@@ -1,3 +1,14 @@
+"""
+shiftex users package - forms module
+====================================
+
+Containing Login and Registration Form and the validators
+
+classes:
+    LoginForm
+    RegistrationForm
+"""
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Regexp
@@ -15,6 +26,9 @@ drugstoreList = [
 
 
 class LoginForm(FlaskForm):
+    """
+    Login Form for /login route
+    """
     email = StringField("Email",
                         validators=[DataRequired(),
                                     Email()])
@@ -25,6 +39,15 @@ class LoginForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
+    """
+    Registration Form for /register route with validators for fundamental fields,
+    providing user-feedback if validation is not possible
+
+    validator:
+        email, drugstore_id: checks users collection if email or drugstore are already registered
+        password: sets minimal password security
+        password_confirm: to prevent typos in password
+    """
     first_name = StringField("First Name",
                              validators=[DataRequired()])
     last_name = StringField("Last Name",
@@ -48,12 +71,18 @@ class RegistrationForm(FlaskForm):
                           validators=[DataRequired()])
     submit = SubmitField("Sign Up")
 
-    def validate_email(self, email):
-        check_email = mongo.db.users.find_one({"email": email.data})
+    def validate_email(self, email: StringField):
+        """
+        Checks if there is a user with given email
+        """
+        check_email = mongo.db.users.find_one({"email": email.data.lower()})
         if check_email is not None:
             raise ValidationError("Email is already taken! Please choose a different one or contact admin.")
 
-    def validate_drugstore_id(self, drugstore_id):
+    def validate_drugstore_id(self, drugstore_id: SelectField):
+        """
+        Checks if there is a user with given drugstore
+        """
         check_drugstore_id = mongo.db.users.find_one({"drugstoreId": int(drugstore_id.data)})
         if check_drugstore_id is not None:
             raise ValidationError("Drugstore is already taken! Please choose a different one or contact admin.")
