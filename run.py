@@ -12,6 +12,5 @@ if __name__ == "__main__":
     app.run(
         host=os.getenv("IP"),
         port=os.getenv("PORT"),
-        debug=os.getenv("DEBUG"),
-        MONGO_URI=os.getenv("MONGO_URI")
-    )
+        debug=os.getenv("DEBUG")
+        )

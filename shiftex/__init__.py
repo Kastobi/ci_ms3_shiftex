@@ -19,7 +19,7 @@ def create_app():
 
     api.init_app(app)
     bcrypt.init_app(app)
-    mongo.init_app(app)
+    mongo.init_app(app, MONGO_URI=os.getenv("MONGO_URI"))
     login_manager.init_app(app)
 
     from shiftex.main import main
