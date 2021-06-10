@@ -5,7 +5,7 @@ if os.path.exists("env.py"):
 
 
 class Config(object):
-    IP = os.environ.get("IP")
+    HOST = os.environ.get("IP")
     PORT = int(os.environ.get("PORT"))
     DEBUG = os.environ.get("DEBUG")
 
