@@ -66,10 +66,10 @@
                 {% endif %}
 
                         <td class="shift-from" data-time="{{ shift.from }}">
-                            {{ shift.from | timestamp_to_readable }}
+                            {{ shift.from | timestamp_to_readable | datetime_to_str }}
                         </td>
                         <td class="shift-to" data-time="{{ shift.to }}">
-                            {{ shift.to | timestamp_to_readable }}
+                            {{ shift.to | timestamp_to_readable | datetime_to_str }}
                         </td>
                         <td class="shift-duration">
                             {{ shift | duration_to_readable }} hours
@@ -80,7 +80,8 @@
                                         data-target="#handle-modal" data-id="{{ shift._id }}">
                                     Handle Offers
                                 </button>
-                                <button class="btn btn-block btn-outline-danger swap-toggle swap-open" data-id="{{ shift._id }}">
+                                <button class="btn btn-block btn-outline-danger swap-toggle swap-open"
+                                        data-id="{{ shift._id }}">
                                     Revoke Request
                                 </button>
                             {% else %}
@@ -101,10 +102,10 @@
                 {% endif %}
 
                         <td class="request-from" data-time="{{ request.from }}">
-                            {{ request.from | timestamp_to_readable }}
+                            {{ request.from | timestamp_to_readable | datetime_to_str }}
                         </td>
                         <td class="request-to" data-time="{{ request.to }}">
-                            {{ request.to | timestamp_to_readable }}
+                            {{ request.to | timestamp_to_readable | datetime_to_str }}
                         </td>
                         <td class="request-duration">
                             {{ request | duration_to_readable }} hours
@@ -183,7 +184,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="confirm-modal-label">
-                            Confirm one of the accepted offers
+                            Confirm one of your accepted offers for the shift
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>

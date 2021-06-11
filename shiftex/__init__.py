@@ -11,6 +11,7 @@ anonymous rotation groups.
 Read more:
 https://github.com/apometricsTK/ci_ms3_shiftex/blob/master/README.md
 """
+import time
 
 from flask import Flask
 
@@ -33,6 +34,10 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    if hasattr(time, "tzset"):
+        # https://stackoverflow.com/questions/1988182/why-my-time-class-has-not-tzset-attribute
+        time.tzset()
 
     # initialise extensions
     api.init_app(app)

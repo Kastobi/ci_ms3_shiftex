@@ -39,10 +39,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        {{ shift.from | timestamp_to_readable }}
+                        {{ shift.from | timestamp_to_readable | datetime_to_str }}
                     </td>
                     <td>
-                        {{ shift.to | timestamp_to_readable }}
+                        {{ shift.to | timestamp_to_readable | datetime_to_str }}
                     </td>
                 </tr>
             {% endfor %}

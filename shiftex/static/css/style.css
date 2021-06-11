@@ -24,7 +24,7 @@ h1, h2, h3, h4, h5 {
 }
 
 header {
-    padding-top: 4rem;
+    padding-top: 4.5rem;
 }
 
 /* Navbar */
@@ -37,10 +37,19 @@ nav {
     top: 0;
     padding: 5px 0;
     width: 100%;
+    box-shadow: rgba(0, 0, 0, 0.24) 0 2px 2px 0;
+}
+
+.navbar-toggler {
+    box-shadow: rgba(0, 0, 0, 0.24) 0 2px 2px 0;
 }
 
 .navbar {
     position: fixed;
+}
+
+.navbar-brand {
+    font-size: 2rem;
 }
 
 /* User */

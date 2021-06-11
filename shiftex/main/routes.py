@@ -34,7 +34,6 @@ def index():
             {"from": {"$lt": now_unixtime}},
             {"to": {"$gt": now_unixtime}}
         ]}))
-    print(type(today_time))
     return render_template("index.html",
                            today_duty_list=today_duty_list,
                            today_time=today_time)

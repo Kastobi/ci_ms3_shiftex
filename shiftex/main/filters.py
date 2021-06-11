@@ -29,6 +29,16 @@ def timestamp_to_readable(timestamp: int) -> datetime:
 
 
 @main.app_template_filter()
+def datetime_to_str(datetime_object: datetime) -> str:
+    """
+    Take datetime object and parse to formatted string
+
+    :param datetime_object: datetime
+    :return: str
+    """
+    return datetime_object.strftime("%H:%M %a, %d. %b %Y")
+
+@main.app_template_filter()
 def duration_to_readable(shift: dict) -> float:
     """
     Take dict with .from and .to timestamps,
