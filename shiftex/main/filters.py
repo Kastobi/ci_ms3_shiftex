@@ -59,14 +59,15 @@ def shift_id_list(swap_list: list) -> list:
 
 
 @main.app_template_filter()
-def accept_id_from_list(shift_id: str, accept_list: list) -> str:
+def accept_id_from_list(shift_id: str, accept_list: list) -> list:
     """
     Take a shift_id and a list of ids
     :param shift_id: id of the corresponding shift
     :param accept_list: list of dicts, [{"shiftId": id, "accept": id}]
-    :return: accepted id corresponding to input shift_id
+    :return: list of accepted ids corresponding to input shift_id
     """
-    # todo: case multiple accepted shifts from same user
-    # https://stackoverflow.com/questions/8653516/python-list-of-dictionaries-search
-    list_index = next((i for i, item in enumerate(accept_list) if item["shiftId"] == shift_id), None)
-    return accept_list[list_index]["accept"]
+    output_list = []
+    for item in accept_list:
+        if item["shiftId"] == shift_id:
+            output_list.append(item["accept"])
+    return output_list

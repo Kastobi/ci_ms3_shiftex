@@ -1,0 +1,86 @@
+/* Body */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: #fbfbfb;
+}
+
+.btn-block{
+    border-radius: 0;
+}
+
+.btn-block {
+    padding: 6px;
+}
+/* Header */
+
+/* Header */
+h1, h2, h3, h4, h5 {
+
+}
+
+header {
+    padding-top: 4rem;
+}
+
+/* Navbar */
+
+nav {
+    background-color: #fbfbfb;
+    opacity: 0.98;
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    padding: 5px 0;
+    width: 100%;
+}
+
+.navbar {
+    position: fixed;
+}
+
+/* User */
+
+.input-group label {
+    display: flex;
+    height: auto;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+label[for=requests] {
+    background-color: #f0f8ff;
+}
+
+th {
+    text-align: center;
+}
+
+tr.request-row {
+    background-color: #f0f8ff;
+}
+
+/* Modal */
+
+.modal {
+
+}
+
+.modal thead {
+
+}
+
+/* Footer */
+.social-link-list li i {
+    color: #495057;
+    font-size: 1.5em;
+}
+
+.social-link-list li i:hover {
+    color: #212529;
+}

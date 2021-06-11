@@ -7,8 +7,11 @@
     <title>Shiftex - Your emergency duty shift-plan</title>
 
     <!-- Stylesheet area -->
+    <link rel="preconnect" href="https://fonts.gstatic.com"/>
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato&display=swap"/>
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" integrity="sha512-P5MgMn1jBN01asBgU0z60Qk4QxiXo86+wlFahKrsQf37c9cro517WzVSPPV1tDKzhku2iJ2FVgL67wG03SGnNA==" crossorigin="anonymous" />
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" />
+    <link type="text/css" rel="stylesheet"  href="{{ url_for("static", filename="css/style.css") }}"/>
 
     <!-- Favicon -->
 
@@ -30,21 +33,23 @@
 {% include "/_includes/_navbar.html" %}
 
 <!-- Header -->
-<header>
+<header class="container">
     {% block header %}
     {% endblock %}
 </header>
 
 <!-- Flash Messages -->
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <div>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 
 <!-- Content -->
 {% block content %}
@@ -53,6 +58,27 @@
 <!-- Footer -->
 <footer class="text-center bg-light">
     Educational project
+    <h3>Find me on</h3>
+    <ul class="social-link-list list-inline">
+        <li class="list-inline-item">
+            <a href="https://github.com/apometricsTK/" target="_blank" rel="noreferrer">
+                <i class="fab fa-github-square" aria-hidden="true"></i>
+                <span class="sr-only">Link to GitHub</span>
+            </a>
+        </li>
+        <li class="list-inline-item">
+            <a href="https://www.linkedin.com/in/tobias-kast/" target="_blank" rel="noreferrer">
+                <i class="fab fa-linkedin" aria-hidden="true"></i>
+                <span class="sr-only">Link to LinkedIn</span>
+            </a>
+        </li>
+        <li class="list-inline-item">
+            <a href="https://www.xing.com/profile/Tobias_Kast5/" target="_blank" rel="noreferrer">
+                <i class="fab fa-xing-square" aria-hidden="true"></i>
+                <span class="sr-only">Link to Xing</span>
+            </a>
+        </li>
+    </ul>
 </footer>
 
 </body>

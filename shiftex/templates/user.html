@@ -15,13 +15,13 @@
 
         <h2>Show</h2>
 
-        <div class="input-group">
+        <div class="input-group pb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="radio" id="shifts" name="list" value="shifts" checked>
                 </div>
             </div>
-            <label class="form-control" for="shifts">My shifts</label>
+            <label class="form-control bg-light" for="shifts">My shifts</label>
 
             <div class="input-group-prepend">
                 <div class="input-group-text">
@@ -35,19 +35,19 @@
                     <input type="radio" id="both" name="list" value="both">
                 </div>
             </div>
-            <label class="form-control" for="both">Both</label>
+            <label class="form-control bg-light" for="both">Both</label>
 
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="checkbox" id="show-future-only" name="list" value="upcoming" checked>
                 </div>
             </div>
-            <label class="form-control" for="show-future-only">Upcoming only</label>
+            <label class="form-control bg-light" for="show-future-only">Upcoming only</label>
 
         </div>
 
-        <table class="table table-striped">
-            <thead>
+        <table class="table">
+            <thead class="thead-light">
                 <tr>
                     <th>From</th>
                     <th>To</th>
@@ -76,15 +76,15 @@
                         </td>
                         <td class="shift-swap">
                             {% if shift._id.__str__() in (rotation_swaps_list | shift_id_list)  %}
-                                <button class="btn btn-light swap-handle" data-toggle="modal"
+                                <button class="btn btn-block btn-outline-success swap-handle" data-toggle="modal"
                                         data-target="#handle-modal" data-id="{{ shift._id }}">
                                     Handle Offers
                                 </button>
-                                <button class="btn btn-light swap-toggle swap-open" data-id="{{ shift._id }}">
+                                <button class="btn btn-block btn-outline-danger swap-toggle swap-open" data-id="{{ shift._id }}">
                                     Revoke Request
                                 </button>
                             {% else %}
-                                <button class="btn btn-light swap-toggle" data-id="{{ shift._id }}">
+                                <button class="btn btn-block btn-outline-secondary swap-toggle" data-id="{{ shift._id }}">
                                     Request Swap
                                 </button>
                             {% endif %}
@@ -111,13 +111,13 @@
                         </td>
                         <td class="request-swap">
                             {% if request.shiftId in (users_accepted_offers | shift_id_list) %}
-                                <button class="btn btn-light confirm-swap" data-toggle="modal"
-                                        data-target="#confirm-modal" data-id="{{ request.shiftId }}"
-                                        data-confirm="{{ request.shiftId | accept_id_from_list(users_accepted_offers) }}">
+                                <button class="btn btn-block btn-outline-info confirm-swap" data-toggle="modal"
+                                      data-target="#confirm-modal" data-id="{{ request.shiftId }}"
+                                      data-confirm="{{ request.shiftId | accept_id_from_list(users_accepted_offers) }}">
                                     Confirm
                                 </button>
                             {%  else %}
-                                <button class="btn btn-light offer-swap" data-toggle="modal"
+                                <button class="btn btn-block btn-outline-info offer-swap" data-toggle="modal"
                                         data-target="#offer-modal" data-id="{{ request.shiftId }}">
                                     Offer swap
                                 </button>
@@ -131,7 +131,7 @@
 
         <div class="modal fade" id="handle-modal" tabindex="-1" role="dialog"
              aria-labelledby="handle-modal-label" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="handle-modal-label">
@@ -155,7 +155,7 @@
 
         <div class="modal fade" id="offer-modal" tabindex="-1" role="dialog"
              aria-labelledby="offer-modal-label" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="offer-modal-label">
@@ -183,7 +183,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="confirm-modal-label">
-                            Confirm the accepted offer
+                            Confirm one of the accepted offers
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -193,10 +193,6 @@
 
                     </div>
                     <div class="modal-footer confirm-modal-footer">
-                        <button class="btn btn-block btn-light confirm-offer"
-                                data-id="" data-target="">
-                                    Confirm swap
-                        </button>
                         <button type="button" class="btn btn-light" data-dismiss="modal">
                             Close
                         </button>

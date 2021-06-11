@@ -107,7 +107,7 @@ $("document").ready( () => {
             } else {
                 element.classList.add("swap-open")
                 element.innerText = "Revoke Request"
-                $(`<button class="btn btn-light swap-handle" data-id="${element.dataset.id}" 
+                $(`<button class="btn btn-block btn-outline-secondary swap-handle" data-id="${element.dataset.id}" 
                     data-target="#handle-modal" data-toggle="modal">Handle Offers</button>`)
                     .insertBefore(`button[data-id="${element.dataset.id}"].swap-open`)
             }
@@ -151,8 +151,8 @@ $("document").ready( () => {
         function generateHandleModal(data, textStatus, jqXHR) {
             modal.find(".modal-title").text("Offers for shift on " + dateDay)
             modal.find(".modal-body").html(`
-                <table class="table table-striped">
-                    <thead>
+                <table class="table">
+                    <thead class="thead-light">
                         <tr>
                             <th>From</th>
                             <th>To</th>
@@ -201,10 +201,10 @@ $("document").ready( () => {
                         <td>${localeString(offer.to)}</td>
                         <td>${Math.abs(offer.to - offer.from) / 3.6e6} hours</td>
                         <td>
-                            <button class="btn btn-light offer-accept offer-handle" data-id="${offer.shiftId}">
+                            <button class="btn btn-block btn-outline-secondary offer-accept offer-handle" data-id="${offer.shiftId}">
                                     Accept
                             </button>
-                            <button class="btn btn-light offer-reject offer-handle" data-id="${offer.shiftId}">
+                            <button class="btn btn-block btn-outline-secondary offer-reject offer-handle" data-id="${offer.shiftId}">
                                     Reject
                             </button>
                         </td>
@@ -304,8 +304,8 @@ $("document").ready( () => {
         function populateOfferShiftsTable(data) {
             modal.find(".modal-title").text("Possible swaps for shift on " + dateDay)
             modal.find(".modal-body").html(`
-                <table class="table table-striped">
-                    <thead>
+                <table class="table">
+                    <thead class="thead-light">
                         <tr>
                             <th>From</th>
                             <th>To</th>
@@ -324,7 +324,7 @@ $("document").ready( () => {
                         <td>${localeString(shift.to)}</td>
                         <td>${Math.abs(shift.to - shift.from) / 3.6e6} hours</td>
                         <td>
-                            <button class="btn btn-light offer-accept offer-shift" data-id="${shift.shiftId}">
+                            <button class="btn btn-block btn-outline-secondary offer-accept offer-shift" data-id="${shift.shiftId}">
                                     Offer shift
                             </button>
                         </td>
@@ -366,11 +366,12 @@ $("document").ready( () => {
         const requestRow = button.closest(".request-row")
         const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString()
         const shiftId = button.data("id")
-        const confirmId = button.data("confirm")
+        const confirmIds = button.data("confirm").replace(/[\[\]']/g, "").split(",")
+        const confirmIdList = confirmIds.map(id => id.trim())
 
         modal.find(".modal-body").html(`
-                <table class="table table-striped">
-                    <thead>
+                <table class="table">
+                    <thead class="thead-light">
                         <tr>
                             <th>Transaction</th>
                             <th>From</th>
@@ -382,7 +383,7 @@ $("document").ready( () => {
                     </tbody>
                 </table>`)
 
-        const shiftList = {"ids": [shiftId, confirmId]}
+        const shiftList = {"ids": confirmIdList.concat(shiftId)}
         const requestShifts = $.ajax({
                 /**
                  * Request information on requested shift and accepted shift, to confirm
@@ -401,49 +402,60 @@ $("document").ready( () => {
             })
 
         function generateConfirmTable(data) {
-            const confirmButton = $(".confirm-offer")
-            $(".confirm-modal-tbody").append(`
+            const requestDocument = data.filter(shift => shift["shiftId"] === shiftId)[0]
+            for (let offer_id of confirmIdList) {
+                let confirmDocument = data.filter(shift => shift["shiftId"] === offer_id)[0]
+                $(".confirm-modal-tbody").append(`
                     <tr>
                         <td>You get</td>
-                        <td>${localeString(data[0].from)}</td>
-                        <td>${localeString(data[0].to)}</td>
-                        <td>${Math.abs(data[0].to - data[0].from) / 3.6e6} hours</td>
+                        <td>${localeString(requestDocument.from)}</td>
+                        <td>${localeString(requestDocument.to)}</td>
+                        <td>${Math.abs(requestDocument.to - requestDocument.from) / 3.6e6} hours</td>
                     </tr>
                     <tr>
                         <td>You trade in</td>
-                        <td>${localeString(data[1].from)}</td>
-                        <td>${localeString(data[1].to)}</td>
-                        <td>${Math.abs(data[1].to - data[1].from) / 3.6e6} hours</td>
+                        <td>${localeString(confirmDocument.from)}</td>
+                        <td>${localeString(confirmDocument.to)}</td>
+                        <td>${Math.abs(confirmDocument.to - confirmDocument.from) / 3.6e6} hours</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+             
+                    <button class="btn btn-block btn-light confirm-offer"
+                                data-id="${shiftId}" data-target="${offer_id}">
+                                    Confirm swap
+                    </button>
+                    </td>
                     </tr>`)
 
-            confirmButton.attr("data-id", shiftId).attr("data-target", confirmId)
+                function confirmOffer(element) {
+                    const shiftId = element.dataset.id
+                    const confirmId = element.dataset.target
 
-            function confirmOffer(element) {
-                const shiftId = element.dataset.id
-                const confirmId = element.dataset.target
-
-                const sendConfirmation = $.ajax({
-                    /**
-                     * confirm and therefore execute the offer
-                     */
-                    url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/confirm/${confirmId}`,
-                    method: "patch",
-                    success: function (data, textStatus, jqXHR) {
-                        confirmSuccess()
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        ajaxFailure(jqXHR, textStatus, errorThrown)
-                    }
-                })
+                    const sendConfirmation = $.ajax({
+                        /**
+                         * confirm and therefore execute the offer
+                         */
+                        url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/confirm/${confirmId}`,
+                        method: "patch",
+                        success: function (data, textStatus, jqXHR) {
+                            confirmSuccess()
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            ajaxFailure(jqXHR, textStatus, errorThrown)
+                        }
+                    })
+                }
 
                 function confirmSuccess() {
+                    modal.modal("hide")
                     // todo: dismiss modal
                     // todo: reload user.html
                     console.log("Confirmed!")
                 }
             }
 
-            confirmButton.click(function () {
+            $("button.confirm-offer").click(function () {
                     confirmOffer(this)
             })
         }
