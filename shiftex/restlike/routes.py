@@ -158,10 +158,17 @@ class SwapHandlingAPI(Resource):
             return {"error": "Offered shift not found"}, 404
 
         elif mode == "offer":
-            if offer_id in original_swap_document["offer"] or \
-                            original_swap_document["reject"] or \
+            if offer_id in original_swap_document["reject"] or \
                             original_swap_document["accept"]:
-                return {"error": "Offered already"}, 409
+                return {"error": "Already rejected or accepted"}, 409
+            elif offer_id in original_swap_document["offer"]:
+                mongo.db.swaps.find_one_and_update(
+                    {"shiftId": request_id},
+                    {"$pull":
+                        {"offer": offer_id}
+                     }
+                )
+                return {"success": "Offer revoked"}, 201
             else:
                 mongo.db.swaps.find_one_and_update(
                     {"shiftId": request_id},

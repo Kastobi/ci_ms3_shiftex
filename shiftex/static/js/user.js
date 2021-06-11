@@ -101,13 +101,13 @@ $("document").ready( () => {
 
         function toggleSuccess() {
             if (element.classList.contains("swap-open")) {
-                element.classList.remove("swap-open")
+                element.classList.remove("swap-open", "btn-outline-danger")
                 element.innerText = "Request Swap"
                 $(`button[data-id="${element.dataset.id}"].swap-handle`).remove()
             } else {
-                element.classList.add("swap-open")
+                element.classList.add("swap-open", "btn-outline-danger")
                 element.innerText = "Revoke Request"
-                $(`<button class="btn btn-block btn-outline-secondary swap-handle" data-id="${element.dataset.id}" 
+                $(`<button class="btn btn-block btn-outline-success swap-handle" data-id="${element.dataset.id}" 
                     data-target="#handle-modal" data-toggle="modal">Handle Offers</button>`)
                     .insertBefore(`button[data-id="${element.dataset.id}"].swap-open`)
             }
@@ -201,10 +201,10 @@ $("document").ready( () => {
                         <td>${localeString(offer.to)}</td>
                         <td>${Math.abs(offer.to - offer.from) / 3.6e6} hours</td>
                         <td>
-                            <button class="btn btn-block btn-outline-secondary offer-accept offer-handle" data-id="${offer.shiftId}">
+                            <button class="btn btn-block btn-outline-success offer-accept offer-handle" data-id="${offer.shiftId}">
                                     Accept
                             </button>
-                            <button class="btn btn-block btn-outline-secondary offer-reject offer-handle" data-id="${offer.shiftId}">
+                            <button class="btn btn-block btn-outline-danger offer-reject offer-handle" data-id="${offer.shiftId}">
                                     Reject
                             </button>
                         </td>
@@ -213,10 +213,18 @@ $("document").ready( () => {
                 }
 
                 for (let shift of acceptList) {
-                    $(`button.offer-accept[data-id=${shift}]`).addClass("accepted")
+                    $(`button.offer-accept[data-id=${shift}]`)
+                        .removeClass("btn-outline-success")
+                        .addClass("btn-success")
+                        .text("Accepted")
+                        .prop("disabled", true)
                 }
                 for (let shift of rejectList) {
-                    $(`button.offer-reject[data-id=${shift}]`).addClass("rejected")
+                    $(`button.offer-reject[data-id=${shift}]`)
+                        .removeClass("btn-outline-danger")
+                        .addClass("btn-danger")
+                        .text("Rejected")
+                        .prop("disabled", true)
                 }
 
 
@@ -229,11 +237,6 @@ $("document").ready( () => {
                      *      css-class "accepted", "rejected" flags status
                      */
                     const mode = element.classList.contains("offer-accept") ? "accept" : "reject"
-
-                    if (element.classList.contains(`${mode}ed`)) {
-                        // todo: disable button, flag
-                        return
-                    }
 
                     const offerId = element.dataset.id
                     const acceptRejectOffer = $.ajax({
@@ -252,11 +255,28 @@ $("document").ready( () => {
 
                     function handleOfferSuccess(element, mode) {
                         if (mode === "accept") {
-                            $(`button.offer-reject[data-id=${element.dataset.id}]`).removeClass("rejected")
-                            element.classList.add("accepted")
+                            $(`button.offer-reject[data-id=${element.dataset.id}]`)
+                                .removeClass("btn-danger")
+                                .addClass("btn-outline-danger")
+                                .text("Reject")
+                                .prop("disabled", false)
+                            $(`button.offer-accept[data-id=${element.dataset.id}]`)
+                                .removeClass("btn-outline-success")
+                                .addClass("btn-success")
+                                .text("Accepted")
+                                .prop("disabled", true)
+
                         } else if (mode === "reject") {
-                            $(`button.offer-accept[data-id=${element.dataset.id}]`).removeClass("accepted")
-                            element.classList.add("rejected")
+                            $(`button.offer-accept[data-id=${element.dataset.id}]`)
+                                .removeClass("btn-success")
+                                .addClass("btn-outline-success")
+                                .text("Accept")
+                                .prop("disabled", false)
+                            $(`button.offer-reject[data-id=${element.dataset.id}]`)
+                                .removeClass("btn-outline-danger")
+                                .addClass("btn-danger")
+                                .text("Rejected")
+                                .prop("disabled", true)
                         }
                     }
                 }
@@ -324,11 +344,47 @@ $("document").ready( () => {
                         <td>${localeString(shift.to)}</td>
                         <td>${Math.abs(shift.to - shift.from) / 3.6e6} hours</td>
                         <td>
-                            <button class="btn btn-block btn-outline-secondary offer-accept offer-shift" data-id="${shift.shiftId}">
+                            <button class="btn btn-block btn-outline-secondary offer-shift" 
+                                data-id="${shift.shiftId}">
                                     Offer shift
                             </button>
                         </td>
                     </tr>`)
+            }
+
+            const getSwapDocument = $.ajax({
+                /**
+                 *  Request already offered / rejected / accepted offers
+                 */
+                url: `${$SCRIPT_ROOT}/api/swap/${shiftId}`,
+                method: "GET",
+                dataType: "json",
+                success: function(data, textStatus, jqXHR) {
+                    selectOfferedShifts(data, textStatus, jqXHR)
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                }
+            })
+
+            function selectOfferedShifts(data) {
+                $("button.offer-shift").each(function(i) {
+                    if (data.accept.includes(this.dataset.id)) {
+                        this.classList.add("offer-accepted", "btn-success")
+                        this.classList.remove("btn-outline-secondary", "offer-shift")
+                        this.innerText = "Accepted"
+                        this.disabled=true
+                    } else if (data.reject.includes(this.dataset.id)) {
+                        this.classList.remove("btn-outline-secondary", "offer-shift")
+                        this.classList.add("offer-rejected", "btn-danger")
+                        this.innerText = "Rejected"
+                        this.disabled=true
+                    } else if (data.offer.includes(this.dataset.id)) {
+                        this.classList.remove("btn-outline-secondary", "offer-shift")
+                        this.classList.add("offer-revoke", "btn-outline-danger")
+                        this.innerText = "Revoke Offer"
+                    }
+                })
             }
 
             function offerShift(element) {
@@ -346,7 +402,15 @@ $("document").ready( () => {
                 })
 
                 function offerPlacementSuccess() {
-                    element.classList.add("offered")
+                    if (element.classList.contains("offer-shift")) {
+                        element.classList.remove("offer-shift", "btn-outline-secondary")
+                        element.classList.add("offer-revoke", "btn-outline-danger")
+                        element.innerText = "Revoke Offer"
+                    } else {
+                        element.classList.remove("offer-revoke", "btn-outline-danger")
+                        element.classList.add("offer-shift", "btn-outline-secondary")
+                        element.innerText = "Offer shift"
+                    }
                 }
             }
 
@@ -402,6 +466,10 @@ $("document").ready( () => {
             })
 
         function generateConfirmTable(data) {
+            /**
+             * Generate an "Shift from swap request" vs "accepted shift for swap"
+             * table for every accepted swap, to clarify swap before execution
+             */
             const requestDocument = data.filter(shift => shift["shiftId"] === shiftId)[0]
             for (let offer_id of confirmIdList) {
                 let confirmDocument = data.filter(shift => shift["shiftId"] === offer_id)[0]
@@ -448,10 +516,7 @@ $("document").ready( () => {
                 }
 
                 function confirmSuccess() {
-                    modal.modal("hide")
-                    // todo: dismiss modal
-                    // todo: reload user.html
-                    console.log("Confirmed!")
+                    window.location.reload(true)
                 }
             }
 

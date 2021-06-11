@@ -24,7 +24,7 @@ h1, h2, h3, h4, h5 {
 }
 
 header {
-    padding-top: 4.5rem;
+    margin-top:6rem;
 }
 
 /* Navbar */
@@ -84,7 +84,20 @@ tr.request-row {
 
 }
 
+/* Modal: Handle */
+
+/* Modal: Offer */
+
+/* Modal: Confirm */
+
+
 /* Footer */
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
 .social-link-list li i {
     color: #495057;
     font-size: 1.5em;
