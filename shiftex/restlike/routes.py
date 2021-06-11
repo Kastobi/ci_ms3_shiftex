@@ -45,12 +45,12 @@ class SwapsQueriesAPI(Resource):
         """
         Query swap collection and find swap_requests in the specified rotation
 
-        :param rotation_id: int, rotation identifier in dataset "planId"
+        :param rotation_id: int, rotation identifier in dataset "digitsId"
         :return:
             error 404: when rotation_id not in swaps collection
             success 200: list of swap documents for rotation_id
         """
-        swaps_plan_cursor = list(mongo.db.swaps.find({"planId": int(rotation_id)}))
+        swaps_plan_cursor = list(mongo.db.swaps.find({"digitsId": int(rotation_id)}))
         if len(swaps_plan_cursor) == 0:
             return {"error": "Not Found"}, 404
 
