@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block header %}
-    <h1>Your emergency duty shifts</h1>
+    <h1>Emergency duty shifts assigned to: {{ current_user.drugstoreName }}</h1>
     <h2>{{ users_shifts_list | length }} shifts, {{ total_hours }} hours total</h2>
-    <h2>{{ current_user.email }}</h2>
+    <h2>Logged in as: {{ current_user.first_name }} {{ current_user.last_name }}, {{ current_user.email }}</h2>
 {% endblock %}
 
 {% block content %}
@@ -49,6 +49,7 @@
         <table class="table">
             <thead class="thead-light">
                 <tr>
+                    <th>Assigned to</th>
                     <th>From</th>
                     <th>To</th>
                     <th>Duration</th>
@@ -64,6 +65,9 @@
                         {% else %}
                     <tr class="shift-row" style="display: none;">
                 {% endif %}
+                        <td class="assigned-to">
+                            {{ current_user.drugstoreName }}
+                        </td>
 
                         <td class="shift-from" data-time="{{ shift.from }}">
                             {{ shift.from | timestamp_to_readable | datetime_to_str }}
@@ -100,7 +104,10 @@
                 {% else %}
                     <tr class="request-row" style="display: none;">
                 {% endif %}
-
+                        <td class="assigned-to">
+                            <!-- todo: insert foreign drugstore name -->
+                            rotation drugstore
+                        </td>
                         <td class="request-from" data-time="{{ request.from }}">
                             {{ request.from | timestamp_to_readable | datetime_to_str }}
                         </td>
