@@ -36,6 +36,7 @@ class User(UserMixin):
         self.last_name = user_json["last_name"]
         self.email = user_json["email"]
         self.drugstoreId = user_json["drugstoreId"]
+        self.drugstoreName = user_json["drugstoreName"]
         self.passwordHash = user_json["passwordHash"]
         self.id = user_json["user_id"]
 
@@ -50,11 +51,15 @@ class User(UserMixin):
             user_id_random = uuid.uuid4().urn
             user_id_taken = mongo.db.users.find_one({"user_id": user_id_random})
 
+        drugstore_document = mongo.db.shifts.find_one({"drugstoreId": int(drugstore_id)})
+        drugstore_name = drugstore_document["drugstore"]["name"]
+
         registration = {
             "first_name": first_name,
             "last_name": last_name,
             "email": email,
             "drugstoreId": int(drugstore_id),
+            "drugstoreName": drugstore_name,
             "passwordHash": password_hash,
             "user_id": user_id_random
         }

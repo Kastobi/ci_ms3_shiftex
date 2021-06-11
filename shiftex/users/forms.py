@@ -15,15 +15,6 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationE
 
 from shiftex.main import mongo
 
-# todo: implement dynamic way after testing, some from one rotation plan for dev / testing
-drugstoreList = [
-    ("1735003", "Bären-Apotheke Bestenheid"),
-    ("3000184", "Engel-Apotheke Frammersbach"),
-    ("3000175", "Hubertus-Apotheke Marktheidenfeld"),
-    ("3000033", "Stadt-Apotheke Stadtprozelten"),
-    ("1735004", "Hof-Apotheke Wertheim")
-]
-
 
 class LoginForm(FlaskForm):
     """
@@ -55,8 +46,7 @@ class RegistrationForm(FlaskForm):
     email = StringField("Email",
                         validators=[DataRequired(),
                                     Email()])
-    drugstore_id = SelectField("Drugstore",
-                               choices=drugstoreList,
+    drugstore_id = SelectField("Drugstore sorted by rotation plan",
                                validators=[DataRequired()])
     password = PasswordField("Password",
                              validators=[DataRequired(),
@@ -70,6 +60,37 @@ class RegistrationForm(FlaskForm):
     agreed = BooleanField("Agree to Terms & Conditions and Privacy Policy",
                           validators=[DataRequired()])
     submit = SubmitField("Sign Up")
+
+    def __init__(self, *args, **kwargs):
+        """
+        Query for Drugstores to choose from
+        Builds distinct list of drugstore ids and removes taken ones
+        """
+        # https://stackoverflow.com/questions/28133859/how-to-populate-wtform-select-field-using-mongokit-pymongo"
+        drugstore_list = list(mongo.db.shifts.aggregate([
+            {"$group":
+                 {"_id": "$drugstoreId",
+                  "digits": {"$first": "$digits"},
+                  "drugstoreName": {"$first": "$drugstore.name"}
+                  }},
+            {"$project": {
+                "_id": 0,
+                "drugstoreId": "$_id",
+                "digits_with_name":
+                    {"$concat": [
+                        "$digits",
+                        " ",
+                        "$drugstoreName"
+                    ]}
+            }}
+        ]))
+        taken_drugstores = mongo.db.users.distinct("drugstoreId")
+        drugstore_choices = [(item["drugstoreId"], item["digits_with_name"]) for item in drugstore_list
+                             if not item["drugstoreId"] in taken_drugstores]
+        drugstore_choices.sort(key=lambda tup: tup[1])
+
+        self.drugstore_id.kwargs["choices"] = drugstore_choices
+        super().__init__()
 
     def validate_email(self, email: StringField):
         """
@@ -85,4 +106,4 @@ class RegistrationForm(FlaskForm):
         """
         check_drugstore_id = mongo.db.users.find_one({"drugstoreId": int(drugstore_id.data)})
         if check_drugstore_id is not None:
-            raise ValidationError("Drugstore is already taken! Please choose a different one or contact admin.")
+            raise ValidationError("Drugstore is already registered! Please choose a different one or contact admin.")
