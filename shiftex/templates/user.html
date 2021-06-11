@@ -5,9 +5,10 @@
 {% endblock %}
 
 {% block header %}
-    <h1>Emergency duty shifts assigned to: {{ current_user.drugstoreName }}</h1>
-    <h2>{{ users_shifts_list | length }} shifts, {{ total_hours }} hours total</h2>
-    <h2>Logged in as: {{ current_user.first_name }} {{ current_user.last_name }}, {{ current_user.email }}</h2>
+    <h1>Emergency duty shifts</h1>
+    <h2>assigned to: {{ current_user.drugstoreName }}</h2>
+    <h3>{{ users_shifts_list | length }} shifts, {{ total_hours }} hours total</h3>
+    <h3>Logged in: {{ current_user.first_name }} {{ current_user.last_name }}, {{ current_user.email }}</h3>
 {% endblock %}
 
 {% block content %}
