@@ -2,7 +2,8 @@
 
 {% block header %}
     <h1>Today on emergency duty</h1>
-    <h2>{{ today_time }}; {{ today_duty_list | length }} pharmacies</h2>
+    <h2>{{ today_time }}</h2>
+    <h3>{{ today_duty_list | length }} pharmacies</h3>
 {% endblock %}
 
 {% block content %}

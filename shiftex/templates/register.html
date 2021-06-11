@@ -17,6 +17,9 @@
                 <legend>
                     Register
                 </legend>
+                <small>
+                    (Registration is on "one-account-per-drugstore"-basis)
+                </small>
 
                 <div class="form-group">
                     {{ form.first_name.label(class="form-control-label") }}
@@ -75,7 +78,7 @@
                 </div>
             </fieldset>
             <div class="form-group">
-                {{ form.submit(class="btn btn-light") }}
+                {{ form.submit(class="btn btn-outline-secondary") }}
             </div>
         </form>
 
