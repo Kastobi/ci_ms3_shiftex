@@ -1,6 +1,6 @@
 # MS3 – Shiftex: An Emergency Shift Exchange Platform
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: INSERT PICTURE**
+![opener](/readmeAssets/am_i_responsive.jpg)
 
 [The website](http://ci-ms3-shiftex.herokuapp.com/) is a Full-Stack-Project which enables a collective 
 of users to manage their shift exchanges on their given rotation plans. It was developed with a dataset
@@ -311,35 +311,103 @@ regions around a drugstore
 
 ### Validators
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: VALIDATORS**
+Validators were used by "copy and pasting" the code into validators. HTML was taken from the browser source code, to
+validate template schema.
+- Strg+A
+- Strg+C
+- Strg+V
 
 #### HTML Validator
 
+- On script root for the templates the "defer" was removed.
+- As the apps views consists of "single purpose use" with only one section and has no SEO intentions, the headers right 
+  above the content section were ruled to be sufficient. No further heading was added to the "section" in contrast to 
+  HTML validator warning.
+- "action" attribute for login and register forms were added.
+
+The validator used is the [HTML validator](https://validator.w3.org/) and the warning mentioned is the only issue.
+
 #### CSS Validator
+
+The styles.css was validated by [jigsaw validator](https://jigsaw.w3.org/css-validator/) and passed without issues.
 
 #### JS Validator
 
+The script.js was validated by [JSHint](https://jshint.com/).
+
+The validator clearly shows much refactor potential. This was evident to the developer but the focus (backend and data)
+and the deadline did not allow refactoring the code.
+
+#### Python Validator
+
 #### Lighthouse
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: LIGHTHOUSE TEST**
+After first preloading of the page (to start Heroku dyno and mongoDB) Lighthouse evaluation results:
 
-##### Performance
-
-##### Accessibility
-
-##### Best Practices
+![Lighthouse](/readmeAssets/lighthouse.jpg)
 
 ### Manual testing
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: MANUAL TEST**
+The Browsers Chrome(v91.0.4472.101) and Firefox (v89.0) were used for testing.
+The deployed version of the page was tested.
+
+All links and buttons were clicked and observed on function.
 
 #### Chrome exclusive, deployed page
 
 ##### Test cases
 
-### Automated testing
+As logged in user (observe database)
+- to consider for these tests
+  - when upcoming only is checked, just shifts and swap requests starting 24h ago are listed (observe database, 
+    identifier from and drugstoreId / digitsId)
+- your shifts are listed, when "my shifts" is activated (observe shifts collection, identifier: drugstoreId)
+- the rotation plans swaps requests are listed, when "Rotation plan requests" is activated (observe shifts collection, 
+  identifier: digitsId)
+- when "both" is activated, both are listed - different background, different buttons
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: AUTO TEST**
+As logged in user (compare database)
+- for your posted swaps, there is a "Handle offers" and "Revoke request" Button, else "Request swap" (compare swap
+  documents shiftId)
+- when click "Request Swap"
+    - swap document is generated and added to swaps collection (observe swaps collection)
+    - the button is replaced by two buttons ("Handle offers" and "Request swap")
+- when click "Handle Offers"
+    - a modal opens
+    - all offered shifts are listed and have "Accept" or "Reject" Buttons (observe swap document)
+    - on click on accept/reject and afterwards on the other one
+        - the shifts are moved to accept / reject array (observe swap document)
+        - the button change from outline to block, disabled and get "-ed" appended to text
+- when click "Revoke request"
+    - the swap document gets deleted (observe swap document)
+    - the buttons disappear and are replaced by "Request swap" button
+    
+- for "rotation plan swap requests"
+    - the swap documents with your digitsId are listed, with offer swap button (compare Database)
+        - when clicked, a modal opens:
+            - showing your shifts and an "offer shift" button for not offered lists, a "rejected" sign for rejected
+              offers and a "revoke offer" button for not handled offers (compare swap document)
+            - on click "offer shift" the shift is added to "offer" array (observe swap document)
+            - on click "revoke shift" the shift is removed from "offer" array (observe swap document)
+    - if there are swap documents with accepted offers from you (identifier same shiftIds with your drugstoreId in swap
+    document with your digitsId)
+        - there is a "confirm" button, instead of an "offer swap" button
+        - on "confirm" click
+            - a modal opens, showing the shifts from the accept array of the swap document which got your drugstoreId, 
+              with a "confirm swap" button beneath
+            - the shifts are paired with the requested swap shift, for easy compare
+    
+As not logged in user
+- You can register with credentials:
+    - all fields necessary (First Name, Last Name, Email, Drugstore, Password, Confirm Password, Terms)
+    - email has to be a valid email schema
+    - password has to have minimum six characters, at least one letter, one number and one special character
+        - an error is already highlighted before clicking "sign up"
+    - the others are tested on "sign up" clock
+    - there is a redirect to login
+
+- You can login with valid credentials
+    - there is a redirect to user
 
 ### User-Story verification
 
@@ -398,7 +466,7 @@ group-chat for different pairs of eyes.
 
 ### Readme
 
-![opener](/readmeAssets/amIresponsive.jpg) **TODO: README TEST**
+Readme was observed on GitHub. All links were clicked.
 
 ---
 

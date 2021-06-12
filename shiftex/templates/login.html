@@ -6,7 +6,7 @@
 
 {% block content %}
 
-        <form action="" method="POST">
+        <form action="{{ url_for("users.login") }}" method="POST">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend>

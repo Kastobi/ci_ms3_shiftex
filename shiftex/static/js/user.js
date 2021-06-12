@@ -1,14 +1,17 @@
+/*jshint esversion: 8 */
+/*globals globals, $*/
+
 $("document").ready( () => {
 
     function localeString(timestamp) {
-        return new Date(parseInt(timestamp)).toLocaleString()
+        return new Date(parseInt(timestamp)).toLocaleString();
     }
 
     function ajaxFailure(jqXHR, textStatus, errorThrown) {
         // todo: flask flash modify for proper HTML display
-        console.log("Error!")
-        console.log(textStatus)
-        console.log(errorThrown)
+        console.log("Error!");
+        console.log(textStatus);
+        console.log(errorThrown);
     }
 
     function sortList() {
@@ -19,12 +22,12 @@ $("document").ready( () => {
          * todo: maybe move to jinja template?
          * @type {*|Window.jQuery|HTMLElement}
          */
-        const tbody = $("tbody")
+        const tbody = $("tbody");
         tbody.find("tr").sort(function(a, b) {
-            return $("td:first", a).text().localeCompare(($("td:first", b).text()))
-        }).appendTo(tbody)
+            return $("td:first", a).text().localeCompare(($("td:first", b).text()));
+        }).appendTo(tbody);
     }
-    sortList()
+    sortList();
 
     function listControl() {
         /**
@@ -34,44 +37,44 @@ $("document").ready( () => {
          *
          * @type {*|Window.jQuery|HTMLElement}
          */
-        const shiftRows = $(".shift-row")
-        const requestRows = $(".request-row")
-        const shiftRowsUpcoming = $(".shift-row.upcoming")
-        const requestRowsUpcoming = $(".request-row.upcoming")
+        const shiftRows = $(".shift-row");
+        const requestRows = $(".request-row");
+        const shiftRowsUpcoming = $(".shift-row.upcoming");
+        const requestRowsUpcoming = $(".request-row.upcoming");
 
-        const bothToggle = $("#both")[0].checked
-        const shiftsToggle = $("#shifts")[0].checked
-        const requestToggle = $("#requests")[0].checked
-        const upcomingToggle = $("#show-future-only")[0].checked
+        const bothToggle = $("#both")[0].checked;
+        const shiftsToggle = $("#shifts")[0].checked;
+        const requestToggle = $("#requests")[0].checked;
+        const upcomingToggle = $("#show-future-only")[0].checked;
 
         if (bothToggle && !upcomingToggle) {
-            shiftRows.show()
-            requestRows.show()
+            shiftRows.show();
+            requestRows.show();
         } else if (bothToggle && upcomingToggle) {
-            shiftRows.hide()
-            requestRows.hide()
-            shiftRowsUpcoming.show()
-            requestRowsUpcoming.show()
+            shiftRows.hide();
+            requestRows.hide();
+            shiftRowsUpcoming.show();
+            requestRowsUpcoming.show();
         } else if (shiftsToggle && !upcomingToggle) {
-            shiftRows.show()
-            requestRows.hide()
+            shiftRows.show();
+            requestRows.hide();
         } else if (shiftsToggle && upcomingToggle) {
-            shiftRows.hide()
-            requestRows.hide()
-            shiftRowsUpcoming.show()
+            shiftRows.hide();
+            requestRows.hide();
+            shiftRowsUpcoming.show();
         } else if (requestToggle && !upcomingToggle) {
-            shiftRows.hide()
-            requestRows.show()
+            shiftRows.hide();
+            requestRows.show();
         } else if (requestToggle && upcomingToggle) {
-            shiftRows.hide()
-            requestRows.hide()
-            requestRowsUpcoming.show()
+            shiftRows.hide();
+            requestRows.hide();
+            requestRowsUpcoming.show();
         }
     }
 
     $(`input[name="list"]`).click(function () {
-        listControl()
-    })
+        listControl();
+    });
 
 
     function toggleSwap(element) {
@@ -86,38 +89,39 @@ $("document").ready( () => {
          *      attribute "data-id" maps to shift,
          *      css-class "swap-open" flags status
          */
-        const httpMethod = element.classList.contains("swap-open") ? "DELETE" : "PUT"
+        const httpMethod = element.classList.contains("swap-open") ? "DELETE" : "PUT";
 
         const toggleSwap = $.ajax({
             url: `${$SCRIPT_ROOT}/api/swap/${element.dataset.id}`,
             method: httpMethod,
             success: function (data, textStatus, jqXHR) {
-                toggleSuccess()
+                toggleSuccess();
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                ajaxFailure(jqXHR, textStatus, errorThrown)
+                ajaxFailure(jqXHR, textStatus, errorThrown);
             }
-        })
+        });
 
         function toggleSuccess() {
             if (element.classList.contains("swap-open")) {
-                element.classList.remove("swap-open", "btn-outline-danger")
-                element.innerText = "Request Swap"
-                $(`button[data-id="${element.dataset.id}"].swap-handle`).remove()
+                element.classList.remove("swap-open", "btn-outline-danger");
+                element.classList.add("btn-outline-secondary");
+                element.innerText = "Request Swap";
+                $(`button[data-id="${element.dataset.id}"].swap-handle`).remove();
             } else {
-                element.classList.add("swap-open", "btn-outline-danger")
-                element.innerText = "Revoke Request"
+                element.classList.add("swap-open", "btn-outline-danger");
+                element.innerText = "Revoke Request";
                 $(`<button class="btn btn-block btn-outline-success swap-handle" data-id="${element.dataset.id}" 
                     data-target="#handle-modal" data-toggle="modal">Handle Offers</button>`)
-                    .insertBefore(`button[data-id="${element.dataset.id}"].swap-open`)
+                    .insertBefore(`button[data-id="${element.dataset.id}"].swap-open`);
             }
         }
     }
 
     $(".swap-toggle").click(function () {
         // todo: add security question to revoke request
-        toggleSwap(this)
-    })
+        toggleSwap(this);
+    });
 
     /**
      * Dynamic generated Modal for handling offers on a shift request
@@ -127,11 +131,11 @@ $("document").ready( () => {
      */
 
     $("#handle-modal").on("show.bs.modal", function (event) {
-        const modal = $(this)
-        const button = $(event.relatedTarget)
-        const shiftRow = button.closest(".shift-row")
-        const dateDay = new Date(parseInt(shiftRow.children(".shift-from")[0].dataset.time)).toDateString()
-        const shiftId = button.data("id")
+        const modal = $(this);
+        const button = $(event.relatedTarget);
+        const shiftRow = button.closest(".shift-row");
+        const dateDay = new Date(parseInt(shiftRow.children(".shift-from")[0].dataset.time)).toDateString();
+        const shiftId = button.data("id");
 
         const getSwapDocument = $.ajax({
             /**
@@ -141,15 +145,15 @@ $("document").ready( () => {
             method: "GET",
             dataType: "json",
             success: function(data, textStatus, jqXHR) {
-                generateHandleModal(data, textStatus, jqXHR)
+                generateHandleModal(data, textStatus, jqXHR);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                ajaxFailure(jqXHR, textStatus, errorThrown)
+                ajaxFailure(jqXHR, textStatus, errorThrown);
             }
-        })
+        });
 
         function generateHandleModal(data, textStatus, jqXHR) {
-            modal.find(".modal-title").text("Offers for your shift on " + dateDay)
+            modal.find(".modal-title").text("Offers for your shift on " + dateDay);
             modal.find(".modal-body").html(`
                 <table class="table table-sm">
                     <thead class="thead-light">
@@ -162,15 +166,15 @@ $("document").ready( () => {
                     </thead>
                     <tbody class="modal-tbody">
                     </tbody>
-                </table>`)
+                </table>`);
 
             /**
              * Build a list of shiftIds to query for, from shiftIds in swap document
              */
-            const offerList = data.offer
-            const acceptList = data.accept
-            const rejectList = data.reject
-            const requestShiftsList = {"ids": data.offer.concat(data.accept).concat(data.reject)}
+            const offerList = data.offer;
+            const acceptList = data.accept;
+            const rejectList = data.reject;
+            const requestShiftsList = {"ids": data.offer.concat(data.accept).concat(data.reject)};
 
             const requestShifts = $.ajax({
                 /**
@@ -181,12 +185,12 @@ $("document").ready( () => {
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(requestShiftsList),
                 success: function (data, textStatus, jqXHR) {
-                    populateHandleModalTable(data)
+                    populateHandleModalTable(data);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                    ajaxFailure(jqXHR, textStatus, errorThrown);
                 }
-            })
+            });
 
             function populateHandleModalTable(data) {
                 /**
@@ -209,7 +213,7 @@ $("document").ready( () => {
                             </button>
                         </td>
                     </tr>
-                    `)
+                    `);
                 }
 
                 for (let shift of acceptList) {
@@ -217,14 +221,14 @@ $("document").ready( () => {
                         .removeClass("btn-outline-success")
                         .addClass("btn-success")
                         .text("Accepted")
-                        .prop("disabled", true)
+                        .prop("disabled", true);
                 }
                 for (let shift of rejectList) {
                     $(`button.offer-reject[data-id=${shift}]`)
                         .removeClass("btn-outline-danger")
                         .addClass("btn-danger")
                         .text("Rejected")
-                        .prop("disabled", true)
+                        .prop("disabled", true);
                 }
 
 
@@ -236,9 +240,9 @@ $("document").ready( () => {
                      *      attribute "data-id" maps to shift,
                      *      css-class "accepted", "rejected" flags status
                      */
-                    const mode = element.classList.contains("offer-accept") ? "accept" : "reject"
+                    const mode = element.classList.contains("offer-accept") ? "accept" : "reject";
 
-                    const offerId = element.dataset.id
+                    const offerId = element.dataset.id;
                     const acceptRejectOffer = $.ajax({
                         /**
                          * Accept / Reject the offered shift
@@ -246,12 +250,12 @@ $("document").ready( () => {
                         url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/${mode}/${offerId}`,
                         method: "PATCH",
                         success: function (data, textStatus, jqXHR) {
-                            handleOfferSuccess(element, mode)
+                            handleOfferSuccess(element, mode);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                           ajaxFailure(jqXHR, textStatus, errorThrown)
+                           ajaxFailure(jqXHR, textStatus, errorThrown);
                         }
-                    })
+                    });
 
                     function handleOfferSuccess(element, mode) {
                         if (mode === "accept") {
@@ -259,34 +263,34 @@ $("document").ready( () => {
                                 .removeClass("btn-danger")
                                 .addClass("btn-outline-danger")
                                 .text("Reject")
-                                .prop("disabled", false)
+                                .prop("disabled", false);
                             $(`button.offer-accept[data-id=${element.dataset.id}]`)
                                 .removeClass("btn-outline-success")
                                 .addClass("btn-success")
                                 .text("Accepted")
-                                .prop("disabled", true)
+                                .prop("disabled", true);
 
                         } else if (mode === "reject") {
                             $(`button.offer-accept[data-id=${element.dataset.id}]`)
                                 .removeClass("btn-success")
                                 .addClass("btn-outline-success")
                                 .text("Accept")
-                                .prop("disabled", false)
+                                .prop("disabled", false);
                             $(`button.offer-reject[data-id=${element.dataset.id}]`)
                                 .removeClass("btn-outline-danger")
                                 .addClass("btn-danger")
                                 .text("Rejected")
-                                .prop("disabled", true)
+                                .prop("disabled", true);
                         }
                     }
                 }
 
                 $(".offer-handle").click(function () {
-                    handleOffer(this)
-                })
+                    handleOffer(this);
+                });
             }
         }
-    })
+    });
 
     /**
      * Modal for offering shifts on a swap request
@@ -294,16 +298,16 @@ $("document").ready( () => {
      */
 
     $("#offer-modal").on("show.bs.modal", function (event) {
-        const modal = $(this)
-        const button = $(event.relatedTarget)
-        const requestRow = button.closest(".request-row")
-        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString()
-        const shiftId = button.data("id")
+        const modal = $(this);
+        const button = $(event.relatedTarget);
+        const requestRow = button.closest(".request-row");
+        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString();
+        const shiftId = button.data("id");
 
-        const userShiftList = {"ids": []}
+        const userShiftList = {"ids": []};
         $(".upcoming .swap-toggle").each(function() {
-            userShiftList["ids"].push(this.dataset.id)
-        })
+            userShiftList["ids"].push(this.dataset.id);
+        });
 
         const requestShifts = $.ajax({
             /**
@@ -314,15 +318,15 @@ $("document").ready( () => {
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(userShiftList),
                 success: function (data, textStatus, jqXHR) {
-                    populateOfferShiftsTable(data)
+                    populateOfferShiftsTable(data);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                    ajaxFailure(jqXHR, textStatus, errorThrown);
                 }
-            })
+            });
 
         function populateOfferShiftsTable(data) {
-            modal.find(".modal-title").text("Shifts you can offer in exchange, for shift on " + dateDay)
+            modal.find(".modal-title").text("Shifts you can offer in exchange, for shift on " + dateDay);
             modal.find(".modal-body").html(`
                 <table class="table table-sm">
                     <thead class="thead-light">
@@ -335,7 +339,7 @@ $("document").ready( () => {
                     </thead>
                     <tbody class="modal-tbody">
                     </tbody>
-                </table>`)
+                </table>`);
 
             for (let shift of data) {
                 $(".modal-tbody").append(`
@@ -349,7 +353,7 @@ $("document").ready( () => {
                                     Offer shift
                             </button>
                         </td>
-                    </tr>`)
+                    </tr>`);
             }
 
             const getSwapDocument = $.ajax({
@@ -360,78 +364,78 @@ $("document").ready( () => {
                 method: "GET",
                 dataType: "json",
                 success: function(data, textStatus, jqXHR) {
-                    selectOfferedShifts(data, textStatus, jqXHR)
+                    selectOfferedShifts(data, textStatus, jqXHR);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                    ajaxFailure(jqXHR, textStatus, errorThrown);
                 }
-            })
+            });
 
             function selectOfferedShifts(data) {
                 $("button.offer-shift").each(function(i) {
                     if (data.accept.includes(this.dataset.id)) {
-                        this.classList.add("offer-accepted", "btn-success")
-                        this.classList.remove("btn-outline-secondary", "offer-shift")
-                        this.innerText = "Accepted"
-                        this.disabled=true
+                        this.classList.add("offer-accepted", "btn-success");
+                        this.classList.remove("btn-outline-secondary", "offer-shift");
+                        this.innerText = "Accepted";
+                        this.disabled=true;
                     } else if (data.reject.includes(this.dataset.id)) {
-                        this.classList.remove("btn-outline-secondary", "offer-shift")
-                        this.classList.add("offer-rejected", "btn-danger")
-                        this.innerText = "Rejected"
-                        this.disabled=true
+                        this.classList.remove("btn-outline-secondary", "offer-shift");
+                        this.classList.add("offer-rejected", "btn-danger");
+                        this.innerText = "Rejected";
+                        this.disabled=true;
                     } else if (data.offer.includes(this.dataset.id)) {
-                        this.classList.remove("btn-outline-secondary", "offer-shift")
-                        this.classList.add("offer-revoke", "btn-outline-danger")
-                        this.innerText = "Revoke Offer"
+                        this.classList.remove("btn-outline-secondary", "offer-shift");
+                        this.classList.add("offer-revoke", "btn-outline-danger");
+                        this.innerText = "Revoke Offer";
                     }
-                })
+                });
             }
 
             function offerShift(element) {
-                const offerId = element.dataset.id
+                const offerId = element.dataset.id;
 
                 const placeOffer = $.ajax({
                     url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/offer/${offerId}`,
                     method: "patch",
                     success: function (data, textStatus, jqXHR) {
-                        offerPlacementSuccess()
+                        offerPlacementSuccess();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        ajaxFailure(jqXHR, textStatus, errorThrown)
+                        ajaxFailure(jqXHR, textStatus, errorThrown);
                     }
-                })
+                });
 
                 function offerPlacementSuccess() {
                     if (element.classList.contains("offer-shift")) {
-                        element.classList.remove("offer-shift", "btn-outline-secondary")
-                        element.classList.add("offer-revoke", "btn-outline-danger")
-                        element.innerText = "Revoke Offer"
+                        element.classList.remove("offer-shift", "btn-outline-secondary");
+                        element.classList.add("offer-revoke", "btn-outline-danger");
+                        element.innerText = "Revoke Offer";
                     } else {
-                        element.classList.remove("offer-revoke", "btn-outline-danger")
-                        element.classList.add("offer-shift", "btn-outline-secondary")
-                        element.innerText = "Offer shift"
+                        element.classList.remove("offer-revoke", "btn-outline-danger");
+                        element.classList.add("offer-shift", "btn-outline-secondary");
+                        element.innerText = "Offer shift";
                     }
                 }
             }
 
             $(".offer-shift").click(function () {
-                    offerShift(this)
-                })
+                    offerShift(this);
+                });
         }
-    })
+    });
 
     /**
      * Modal to confirm an accepted offer and therefore execute the request
      */
 
     $("#confirm-modal").on("show.bs.modal", function (event) {
-        const modal = $(this)
-        const button = $(event.relatedTarget)
-        const requestRow = button.closest(".request-row")
-        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString()
-        const shiftId = button.data("id")
-        const confirmIds = button.data("confirm").replace(/[\[\]']/g, "").split(",")
-        const confirmIdList = confirmIds.map(id => id.trim())
+        const modal = $(this);
+        const button = $(event.relatedTarget);
+        const requestRow = button.closest(".request-row");
+        const dateDay = new Date(parseInt(requestRow.children(".request-from")[0].dataset.time)).toDateString();
+        const shiftId = button.data("id");
+        const confirmIds = button.data("confirm").replace(/[\[\]']/g, "").split(",");
+        const confirmIdList = confirmIds.map(id => id.trim());
 
         modal.find(".modal-body").html(`
                 <table class="table table-sm">
@@ -445,9 +449,9 @@ $("document").ready( () => {
                     </thead>
                     <tbody class="confirm-modal-tbody">
                     </tbody>
-                </table>`)
+                </table>`);
 
-        const shiftList = {"ids": confirmIdList.concat(shiftId)}
+        const shiftList = {"ids": confirmIdList.concat(shiftId)};
         const requestShifts = $.ajax({
                 /**
                  * Request information on requested shift and accepted shift, to confirm
@@ -458,21 +462,21 @@ $("document").ready( () => {
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(shiftList),
                 success: function (data, textStatus, jqXHR) {
-                    generateConfirmTable(data)
+                    generateConfirmTable(data);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    ajaxFailure(jqXHR, textStatus, errorThrown)
+                    ajaxFailure(jqXHR, textStatus, errorThrown);
                 }
-            })
+            });
 
         function generateConfirmTable(data) {
             /**
              * Generate an "Shift from swap request" vs "accepted shift for swap"
              * table for every accepted swap, to clarify swap before execution
              */
-            const requestDocument = data.filter(shift => shift["shiftId"] === shiftId)[0]
+            const requestDocument = data.filter(shift => shift["shiftId"] === shiftId)[0];
             for (let offer_id of confirmIdList) {
-                let confirmDocument = data.filter(shift => shift["shiftId"] === offer_id)[0]
+                let confirmDocument = data.filter(shift => shift["shiftId"] === offer_id)[0];
                 $(".confirm-modal-tbody").append(`
                     <tr>
                         <td>You get</td>
@@ -494,11 +498,11 @@ $("document").ready( () => {
                                     Confirm swap
                     </button>
                     </td>
-                    </tr>`)
+                    </tr>`);
 
                 function confirmOffer(element) {
-                    const shiftId = element.dataset.id
-                    const confirmId = element.dataset.target
+                    const shiftId = element.dataset.id;
+                    const confirmId = element.dataset.target;
 
                     const sendConfirmation = $.ajax({
                         /**
@@ -507,26 +511,26 @@ $("document").ready( () => {
                         url: `${$SCRIPT_ROOT}/api/swap/${shiftId}/confirm/${confirmId}`,
                         method: "patch",
                         success: function (data, textStatus, jqXHR) {
-                            confirmSuccess()
+                            confirmSuccess();
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            ajaxFailure(jqXHR, textStatus, errorThrown)
+                            ajaxFailure(jqXHR, textStatus, errorThrown);
                         }
-                    })
+                    });
                 }
 
                 function confirmSuccess() {
-                    window.location.reload(true)
+                    window.location.reload(true);
                 }
             }
 
             $("button.confirm-offer").click(function () {
-                    confirmOffer(this)
-            })
+                    confirmOffer(this);
+            });
         }
-    })
+    });
 
     $(".modal").on("shown.bs.modal", function () {
-        $(".modal").trigger("focus")
-    })
-})
+        $(".modal").trigger("focus");
+    });
+});
