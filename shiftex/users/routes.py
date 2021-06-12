@@ -57,7 +57,7 @@ def login():
 @login_required
 @users.route("/logout")
 def logout():
-    "Log user out"
+    """Log user out"""
     logout_user()
     flash(f"Logout successful!")
     return redirect(url_for("main.index"))

@@ -68,11 +68,11 @@ class RegistrationForm(FlaskForm):
         """
         # https://stackoverflow.com/questions/28133859/how-to-populate-wtform-select-field-using-mongokit-pymongo"
         drugstore_list = list(mongo.db.shifts.aggregate([
-            {"$group":
-                 {"_id": "$drugstoreId",
-                  "digits": {"$first": "$digits"},
-                  "drugstoreName": {"$first": "$drugstore.name"}
-                  }},
+            {"$group": {
+                "_id": "$drugstoreId",
+                "digits": {"$first": "$digits"},
+                "drugstoreName": {"$first": "$drugstore.name"}
+            }},
             {"$project": {
                 "_id": 0,
                 "drugstoreId": "$_id",
