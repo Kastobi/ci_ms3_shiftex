@@ -230,6 +230,10 @@ regions around a drugstore
 
 - Add more user messaging (e.g. "Your offer xyz was rejected")
 
+- Refactoring JavaScript, proper REST-call error reporting
+
+- Add a "help" page, to explain process to users direct on page
+
 ---
 
 [Back to top](#Table-of-Contents)
@@ -308,6 +312,17 @@ regions around a drugstore
 [Back to top](#Table-of-Contents)
 
 ## Testing
+
+### Bugs while developing
+
+#### Deploy problem
+
+The app factory pattern with [flask configuration via object](https://flask.palletsprojects.com/en/2.0.x/config/) made
+long problems. The IP and PORT must **NOT** be passed in via config object, but must be passed to app.run().
+
+A mongo SSL problem was observed while searching this bug. Therefore SSL stack was added (certifi, dnspython, pyOpenSSL)
+
+[Nearly Full Story (restricted access)](https://code-institute-room.slack.com/archives/CHDVDV2Q4/p1623311812056800).
 
 ### Validators
 

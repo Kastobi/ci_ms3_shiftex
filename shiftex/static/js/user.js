@@ -8,7 +8,9 @@ $("document").ready( () => {
     }
 
     function ajaxFailure(jqXHR, textStatus, errorThrown) {
-        // todo: flask flash modify for proper HTML display
+        /**
+         * No errors observed in the manual testing phase. Should be proper reported
+         */
         console.log("Error!");
         console.log(textStatus);
         console.log(errorThrown);
@@ -19,7 +21,6 @@ $("document").ready( () => {
          * Sorts swap requests into shifts list for comfort comprehension
          *
          * https://stackoverflow.com/questions/22906760/jquery-sort-table-data
-         * todo: maybe move to jinja template?
          * @type {*|Window.jQuery|HTMLElement}
          */
         const tbody = $("tbody");
@@ -119,7 +120,6 @@ $("document").ready( () => {
     }
 
     $(".swap-toggle").click(function () {
-        // todo: add security question to revoke request
         toggleSwap(this);
     });
 

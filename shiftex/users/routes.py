@@ -168,17 +168,3 @@ def user():
                            rotation_swap_requests_list=rotation_swap_requests_list,
                            users_accepted_offers=users_accepted_offers,
                            total_hours=total_hours)
-
-
-@login_required
-@users.route("/admin")
-def admin():
-    """
-    Starting point to provide a management interface for productive use.
-    """
-    overview = {"count_shifts": int(mongo.db.shifts.count_documents({})),
-                "count_pharmacies": len(mongo.db.shifts.distinct("drugstoreId")),
-                "count_rotation_plans": len(mongo.db.shifts.distinct("planId")),
-                "count_rotations": len(mongo.db.shifts.distinct("digitsId"))
-                }
-    return render_template("admin.html", overview=overview)
