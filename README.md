@@ -2,7 +2,7 @@
 
 ![opener](/readmeAssets/am_i_responsive.jpg)
 
-[The website](http://ci-ms3-shiftex.herokuapp.com/) is a Full-Stack-Project which enables a collective 
+[The website](https://ci-ms3-shiftex.herokuapp.com/) is a Full-Stack-Project which enables a collective 
 of users to manage their shift exchanges on their given rotation plans. It was developed with a dataset
 in mind, which includes ca 50.000 emergency shifts of 2.500 pharmacies organized in 95 rotation plans.
 
