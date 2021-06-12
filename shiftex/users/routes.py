@@ -58,6 +58,8 @@ def login():
 @users.route("/logout")
 def logout():
     """Log user out"""
+    if not current_user.is_authenticated:
+        return redirect(url_for("main.index"))
     logout_user()
     flash(f"Logout successful!")
     return redirect(url_for("main.index"))
@@ -106,6 +108,9 @@ def user():
             -> users shifts ids vs ids in accept array in swap documents
 
     """
+    if not current_user.is_authenticated:
+        return redirect(url_for("main.index"))
+
     yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
     yesterday_stamp = yesterday.timestamp() * 1000
     drugstore_id = current_user.drugstoreId
