@@ -123,7 +123,7 @@
                         </td>
                         <td class="request-swap">
                             {% if request.shiftId in (users_accepted_offers | shift_id_list) %}
-                                <button class="btn btn-block btn-outline-info confirm-swap" data-toggle="modal"
+                                <button class="btn btn-block btn-info confirm-swap" data-toggle="modal"
                                       data-target="#confirm-modal" data-id="{{ request.shiftId }}"
                                       data-confirm="{{ request.shiftId | accept_id_from_list(users_accepted_offers) }}">
                                     Confirm
