@@ -149,9 +149,9 @@ $("document").ready( () => {
         })
 
         function generateHandleModal(data, textStatus, jqXHR) {
-            modal.find(".modal-title").text("Offers for shift on " + dateDay)
+            modal.find(".modal-title").text("Offers for your shift on " + dateDay)
             modal.find(".modal-body").html(`
-                <table class="table">
+                <table class="table table-sm">
                     <thead class="thead-light">
                         <tr>
                             <th>From</th>
@@ -322,9 +322,9 @@ $("document").ready( () => {
             })
 
         function populateOfferShiftsTable(data) {
-            modal.find(".modal-title").text("Possible swaps for shift on " + dateDay)
+            modal.find(".modal-title").text("Shifts you can offer in exchange, for shift on " + dateDay)
             modal.find(".modal-body").html(`
-                <table class="table">
+                <table class="table table-sm">
                     <thead class="thead-light">
                         <tr>
                             <th>From</th>
@@ -434,7 +434,7 @@ $("document").ready( () => {
         const confirmIdList = confirmIds.map(id => id.trim())
 
         modal.find(".modal-body").html(`
-                <table class="table">
+                <table class="table table-sm">
                     <thead class="thead-light">
                         <tr>
                             <th>Transaction</th>

@@ -2,11 +2,15 @@
 
 html {
     scroll-behavior: smooth;
+    height: 100%;
 }
 
 body {
     font-family: 'Lato', sans-serif;
     background-color: #fbfbfb;
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
 }
 
 .btn-block{
@@ -18,7 +22,25 @@ body {
 }
 /* Header */
 
-/* Header */
+@media screen and (max-width: 420px) {
+    h1 {
+        font-size: 1.5rem;
+        padding: 0.5rem 0;
+    }
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+}
+
+h4 {
+    font-size: 1rem;
+}
+
 h1, h2, h3, h4, h5 {
 
 }
@@ -52,14 +74,50 @@ nav {
     font-size: 2rem;
 }
 
+/* Content */
+section {
+    /*min-height: 50vh;
+    flex-grow: 1;*/
+}
+
 /* User */
+.input-group {
+    justify-content: center;
+}
+
+.input-group-item {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+}
 
 .input-group label {
     display: flex;
-    height: auto;
     text-align: center;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.input-group-text {
+    white-space: normal;
+}
+
+@media all and (max-width: 500px) {
+    .input-group-item {
+        width: 100%;
+    }
+    .input-group {
+        width: 100%;
+    }
+    .input-group-prepend {
+        margin-right: 0;
+    }
+    .input-group-text {
+    }
+    .input-group label.form-control {
+    }
 }
 
 label[for=requests] {
@@ -93,8 +151,7 @@ tr.request-row {
 
 /* Footer */
 footer {
-    position: fixed;
-    bottom: 0;
+    margin-top: auto;
     width: 100%;
 }
 

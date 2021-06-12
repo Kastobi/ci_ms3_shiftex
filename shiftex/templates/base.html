@@ -35,13 +35,13 @@
 {% include "/_includes/_navbar.html" %}
 
 <!-- Header -->
-<header class="container">
+<header class="container-lg">
     {% block header %}
     {% endblock %}
 </header>
 
 <!-- Flash Messages -->
-<div class="container">
+<div class="container-lg">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -54,8 +54,10 @@
 </div>
 
 <!-- Content -->
-{% block content %}
-{% endblock %}
+<section class="container-lg">
+    {% block content %}
+    {% endblock %}
+</section>
 
 <!-- Footer -->
 <footer class="text-center bg-light">

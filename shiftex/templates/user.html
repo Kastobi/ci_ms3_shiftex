@@ -12,42 +12,45 @@
 {% endblock %}
 
 {% block content %}
-    <section class="container-lg">
 
-        <h2>Show</h2>
-
+    <h3>Show</h3>
         <div class="input-group pb-2">
+
+            <div class="input-group-item">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="radio" id="shifts" name="list" value="shifts" checked>
                 </div>
             </div>
             <label class="form-control bg-light" for="shifts">My shifts</label>
-
+            </div>
+            <div class="input-group-item">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="radio" id="requests" name="list" value="requests">
                 </div>
             </div>
             <label class="form-control" for="requests">Rotation plan swap requests</label>
-
+            </div>
+            <div class="input-group-item">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="radio" id="both" name="list" value="both">
                 </div>
             </div>
             <label class="form-control bg-light" for="both">Both</label>
-
+            </div>
+            <div class="input-group-item">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <input type="checkbox" id="show-future-only" name="list" value="upcoming" checked>
                 </div>
             </div>
             <label class="form-control bg-light" for="show-future-only">Upcoming only</label>
-
+            </div>
         </div>
 
-        <table class="table">
+        <table class="table table-sm">
             <thead class="thead-light">
                 <tr>
                     <th>Assigned to</th>
@@ -144,7 +147,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="handle-modal-label">
-                            Offers for shift on
+                            Offers for your shift on
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -168,7 +171,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="offer-modal-label">
-                            Possible swaps for shift on
+                            Shifts you can offer in exchange, for shift on
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -188,7 +191,7 @@
 
         <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog"
              aria-labelledby="confirm-modal-label" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="confirm-modal-label">
@@ -210,5 +213,4 @@
             </div>
         </div>
 
-    </section>
 {% endblock %}

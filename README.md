@@ -82,6 +82,32 @@ select the best accepted offer.
 
 #### Meta
 
+- Login, Logout and Register page allow users to log-in, -out and register.
+
+- Control on the main user page allow users to filter on
+    - just the users shifts
+    - the available swaps on his rotation plan
+    - both of them
+    - just on upcoming shifts / swaps
+    - all shifts in plan
+
+- Colored, color- and text-changing buttons give users instant feedback on their actions.
+
+- The page doesn't need reloads
+    - Exceptions:
+        - To include confirms, in this case reload is triggered by the confirmation
+        - To include swap requests posted, while the user has been actively logged in.
+
+- If not processed by another instance, every swap-action can be undone
+    - Exceptions:
+        - A swap request can be revoked, even if there are offers (a user can decide to not swap,
+        after all). This cannot be undone
+        - A confirmed swap (accepted & confirmed), cannot be undone. 
+    
+- A user can contact the developer on different ways.
+
+- The Layout is responsive and usable on mobile and desktop devices.
+
 ### Features left to Implement
 - Filters for duration of shifts, if different types of shift are on the plan.
 
@@ -91,7 +117,7 @@ regions around a drugstore
 - A map for users searching a drugstore on duty right now
 
 - Identification of the user requesting a swap
-    - Neutral exchange vs concerns helping a competitor
+    - Neutral exchange vs concerns helping a competitor, maybe a voting feature per rotation plan?
 
 - A User profile with the possibility
     - to change my contact information
@@ -105,6 +131,10 @@ regions around a drugstore
         - from my planning software to the exchange platform
         - from the exchange platform to my planning software
     - a dashboard to maintain status overview
+
+- Add logging to undo changes and spot possible problems
+
+- Add more user messaging (e.g. "Your offer xyz was rejected")
 
 ---
 
@@ -150,6 +180,9 @@ regions around a drugstore
 
 ##### [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 - as cloud database provide for the deployed version
+
+##### [MongoDB Compass](https://www.mongodb.com/products/compass)
+- for database management
 
 #### [JavaScript](https://en.wikipedia.org/wiki/JavaScript)
 - for FrontEnd logic
