@@ -60,17 +60,73 @@ select the best accepted offer.
 
 ### Structure & Skeleton
 
-- collections
-   - shifts
-   - swaps (shift id, biddings - shift ids, status)
-   - users
+The value for the user is the quick communication with his rotation group and overview
+on shifts and swap requests. The best way to achieve overview over this data is limiting
+it (filter irrelevant data = shifts not assigned to user and without a request for swap 
+from his rotation group). The shifts date as main information and identifier for the user
+is in center of the view.
 
-#### Mobile wireframe
+A filter to just show user shifts or show swap requests as well will support focusing
+on the desired intent.
+
+The user journey in a standard process should be
+    
+1. **User A** posts a swap request
+2. **User B** offers shifts of his own to swap
+3. **User A** accepts/rejects some of this offers
+4. **User B** confirms **one** of the accepted offers
+    - here the confirmed swap will be executed
+
+The **given** data is a list of objects, following the schema:
+
+![shift schema](/readmeAssets/shifts.jpg) 
+
+They were bulk-imported into mongoDB, and the set from mongoDB generated "_id" was
+used as primary key and main identifier afterwards.
+
+![shift imported schema](/readmeAssets/shifts_import.jpg)
+
+Based on this following user and swap schema has been developed.
+
+![user schema](/readmeAssets/users.jpg) 
+![user schema](/readmeAssets/swaps.jpg) 
+
+The document types are stored in three different collections.
+    - shifts in shifts
+    - swaps in swaps
+    - users in users
+
+The relevant connections:
+    - users
+        - drugstoreId connects to
+            - shifts documents
+            - swaps documents
+    - swaps
+        - is based on the **_id** from the shift offered
+        - digitsId connects to relevant shifts from the rotation
+        - drugstoreId connects to user document and other shifts from user
+        - the shiftIds in the arrays connect to offered shifts and their status
 
 #### Desktop wireframe
 
+![Desktop wireframe 1](/readmeAssets/desktop1.png) 
+![Desktop wireframe 1](/readmeAssets/desktop2.png) 
+![Desktop wireframe 1](/readmeAssets/desktop3.png) 
+![Desktop wireframe 1](/readmeAssets/desktop4.png) 
+![Desktop wireframe 1](/readmeAssets/desktop5.png) 
+
+#### Mobile wireframe
+
+![Mobile wireframe 1](/readmeAssets/mobile1.png) 
+
 ### Surface
 
+As the main purpose is data handling, managing and overview, I deliberately decided against too many graphic 
+distractions. 
+
+Signal colors (green to accept something, red to revoke ore reject something) help users to
+orientate. Hovering effects and well known control elements support intuitive navigation
+and interaction.
 
 ---
 
@@ -79,6 +135,26 @@ select the best accepted offer.
 ## Features
 
 ### Existing Features
+
+#### Drugstores on duty today
+
+A not logged-in user can see drugstores on emergency duty today.
+
+#### Users Dashboard
+
+A user can see his shifts and swap requests from his rotation plan.
+
+##### Handle offers
+
+A user can accept and reject offers on his swap request.
+
+##### Offer shifts
+
+A user can offer one of his shifts on a swap request.
+
+##### Confirm accepted offers
+
+A user can confirm an accepted offer.
 
 #### Meta
 
@@ -108,7 +184,25 @@ select the best accepted offer.
 
 - The Layout is responsive and usable on mobile and desktop devices.
 
+- Database CRUD functionalities given
+    - **Create** Shift, User and Swap documents
+    - **Read** Shift, User and Swap documents
+    - **Update** Swap documents
+    - **Delete** Shift and Swap documents
+    
+- REST-like endpoints need a login (therefore REST-"like") and only logged-in users are able to use them.
+
+#### 
+
 ### Features left to Implement
+
+- Additional security question on revoking request and confirming swap (non-revocable database change)
+
+- Additional security checks on REST-like endpoints
+    - e.g. 
+        - check if drugstore-id and users-drugstore match
+        - expiration timers
+
 - Filters for duration of shifts, if different types of shift are on the plan.
 
 - Filters for special rotations implemented in the rotation plan, e.g. based on population density in
@@ -217,6 +311,8 @@ regions around a drugstore
 
 ### Validators
 
+![opener](/readmeAssets/amIresponsive.jpg) **TODO: VALIDATORS**
+
 #### HTML Validator
 
 #### CSS Validator
@@ -224,6 +320,8 @@ regions around a drugstore
 #### JS Validator
 
 #### Lighthouse
+
+![opener](/readmeAssets/amIresponsive.jpg) **TODO: LIGHTHOUSE TEST**
 
 ##### Performance
 
@@ -233,20 +331,74 @@ regions around a drugstore
 
 ### Manual testing
 
+![opener](/readmeAssets/amIresponsive.jpg) **TODO: MANUAL TEST**
+
 #### Chrome exclusive, deployed page
 
 ##### Test cases
 
 ### Automated testing
 
+![opener](/readmeAssets/amIresponsive.jpg) **TODO: AUTO TEST**
+
 ### User-Story verification
 
-#### User
+#### Non participating User...
+
+1. I want to see, which drugstore is on emergency duty right now.
+
+![today on duty screenshot](/readmeAssets/today_on_duty.jpg)
+
+#### User in need of a swap...
+
+1. I want to request a swap on a given shift.
+   
+![request_swap](/readmeAssets/request_swap.jpg)
+
+2. I want to revoke a request, if the circumstances changed.
+
+![revoke_request](/readmeAssets/revoke_request.jpg)   
+
+3. I want this request to be communicated to all members in my rotation plan.
+   
+![rotation_requests](/readmeAssets/rotation_requests.jpg)   
+
+4. I want to handle offered shifts on my exchange request (reject / accept).
+   
+![accept_reject](/readmeAssets/accept_reject.jpg)   
+
+5. I want the exchange to be executed if both parties agree.
+    - observed and checked with two users
+
+#### User bidding on a swap...
+
+1. I want to see the requests on my rotation plan, and evaluate if I want to offer one of my shifts.
+
+![rotation_requests](/readmeAssets/rotation_requests.jpg)   
+   
+2. I want to offer shifts in exchange for a given swap request.
+3. I want to see my offers on a given request and revoke them, if not processed already.
+4. I want to see, which of my offers had been rejected, and maybe offer another one.
+   
+![offer_status](/readmeAssets/offer_status.jpg)   
+
+5. I want to confirm one of my accepted offers, so me as the person helping another one in need, can
+select the best accepted offer.
+   
+![confirm1](/readmeAssets/confirm1.jpg)   
+![confirm2](/readmeAssets/confirm2.jpg)   
+
+6. I want the exchange to be executed after confirmation.
+    - observed and checked with two users
  
 ### Slack review
 
+The project has been posted to the Code Institute community Slack channel peer-code-review and to the Hackathon 
+group-chat for different pairs of eyes.
 
 ### Readme
+
+![opener](/readmeAssets/amIresponsive.jpg) **TODO: README TEST**
 
 ---
 
@@ -254,6 +406,7 @@ regions around a drugstore
 
 ## Deployment
 
+Deployment on local and via Heroku with MongoDB Atlas covered.
 
 ### Local
 
@@ -264,6 +417,10 @@ regions around a drugstore
 - On the [GitHub page](https://github.com/apometricsTK/ci_ms3_shiftex)  click on **Code** (top right)
 - Click "Download ZIP"
 - Extract to your desired location
+    - You need (other files can)
+        - shiftex folder with content
+        - requirements.txt (for "virtual environment" step below)
+        - run.py
 - Create "env.py" file in the directory, open it and provide following parameters
     - TZ database name: [Look it up](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
     - Mongo_Uri first line is for local, enter your database name
@@ -291,10 +448,12 @@ pip install -r requirements.txt
 ```
 
 - Run app with 
+
 ```
 python run.py
 ```  
 
+- Visit your configured address (default: "http://127.0.0.1:5000") with your favorite browser
 
 ### Deployed / Hosted
 
@@ -396,6 +555,8 @@ of your service provider from this schema.
 * The first readme screenshot was taken with [ami.responsive](http://ami.responsivedesign.is/)
 
 * The favicon was generated with [favicon.io](https://favicon.io/)
+
+* The wireframes were drawn with [Balsamiq](https://balsamiq.com/)
 
 ### Acknowledgments
 
